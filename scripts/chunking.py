@@ -11,13 +11,18 @@ TEXT = (
 
 def chunk_fixed(text: str, size: int, overlap: int) -> list[str]:
     """Split `text` into windows of `size` characters.
-
+    
     Each window starts `size - overlap` characters after the previous one.
     Raise ValueError if `overlap >= size` (the window would never advance).
     """
-    # TODO: write this yourself.
-    raise NotImplementedError
 
+    if size <= 0:
+        raise ValueError("size must be positive")
+    if overlap < 0 or overlap >= size:
+        raise ValueError("overlap must be >= 0 and < size")
+
+    step = size - overlap
+    return [text[start : start + size] for start in range(0, len(text), step)]
 
 if __name__ == "__main__":
     # Check 1: no overlap must give exactly these 3 chunks.
