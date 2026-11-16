@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,12 @@ class Settings(BaseSettings):
     # Field name <-> variable name, case-insensitive: database_url <-> DATABASE_URL.
     # No default on purpose: if it is missing, the app fails at startup with a clear error.
     database_url: str
+
+    # SecretStr: the value is hidden in repr/logs; read it with .get_secret_value().
+    gemini_api_key: SecretStr
+    embedding_model: str = "gemini-embedding-2"
+    # Must match the column: chunks.embedding is vector(768).
+    embedding_dim: int = 768
 
 
 @lru_cache
