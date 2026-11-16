@@ -17,3 +17,13 @@ class Chunk:
     def for_embedding(self) -> str:
         """Text with context prefix, the version that will be embedded."""
         return f"{self.section} > {self.title}\n{self.text}"
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddedChunk:
+    """A chunk plus everything the database needs to store it."""
+
+    position: int  # order inside the document
+    chunk: Chunk
+    content_hash: str  # sha256 of the exact text that was embedded
+    embedding: list[float]
