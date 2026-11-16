@@ -6,9 +6,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Dependencies first: this layer stays cached until requirements-api.txt changes.
-COPY requirements-api.txt .
-RUN pip install -r requirements-api.txt
+# Dependencies first: this layer stays cached until requirements.txt changes.
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 COPY . .
 
