@@ -1,0 +1,25 @@
+services:
+  db:
+    # Postgres 17 with the pgvector extension already installed.
+    image: pgvector/pgvector:pg17
+    environment:
+      # Dev-only credentials. Read only on first init of an empty volume.
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag
+    ports:
+      # host:container. 5433 avoids clashing with another Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      # Named volume: data survives container recreation.
+      - pgdata:/var/lib/postgresql/data
+      # *.sql here run once, on first init of an empty volume. Read-only mount.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
