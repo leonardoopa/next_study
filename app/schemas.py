@@ -27,3 +27,23 @@ class EmbeddedChunk:
     chunk: Chunk
     content_hash: str  # sha256 of the exact text that was embedded
     embedding: list[float]
+
+
+@dataclass(frozen=True, slots=True)
+class SearchResult:
+    """One hit of a similarity search."""
+
+    section: str
+    title: str
+    content: str
+    similarity: float  # cosine similarity: 1 = same direction, 0 = unrelated
+
+
+@dataclass(frozen=True, slots=True)
+class IngestSummary:
+    """What an ingestion run did."""
+
+    total: int
+    new: int
+    existing: int
+    removed: int

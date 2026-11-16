@@ -3,7 +3,7 @@
 import psycopg
 from pgvector import Vector
 
-from app.schemas import EmbeddedChunk
+from app.schemas import EmbeddedChunk, SearchResult
 
 
 def upsert_document(conn: psycopg.Connection, name: str, source_path: str) -> int:
@@ -67,3 +67,22 @@ def delete_stale(conn: psycopg.Connection, document_id: int, keep_hashes: set[st
         (document_id, list(keep_hashes)),
     )
     return cur.rowcount
+
+
+def search_chunks(conn: psycopg.Connection, query_embedding: list[float], k: int = 5) -> list[SearchResult]:
+    """Top-k chunks closest to the query by cosine distance.
+
+    `<=>` is cosine DISTANCE (0 = identical direction), so ORDER BY ascending puts the
+    closest first, and similarity = 1 - distance.
+    """
+    vec = Vector(query_embedding)
+    rows = conn.execute(
+        """
+        SELECT section, title, content, 1 - (embedding <=> %s) AS similarity
+        FROM chunks
+        ORDER BY embedding <=> %s
+        LIMIT %s
+        """,
+        (vec, vec, k),
+    ).fetchall()
+    return [SearchResult(section=r[0], title=r[1], content=r[2], similarity=float(r[3])) for r in rows]
