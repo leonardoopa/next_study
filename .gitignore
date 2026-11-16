@@ -15,3 +15,6 @@ graphify-out/.graphify_python
 graphify-out/graph.html
 graphify-out/cost.json
 qa-output/
+
+# Personal documents used for ingestion (never commit)
+data/
