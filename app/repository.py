@@ -76,13 +76,26 @@ def search_chunks(conn: psycopg.Connection, query_embedding: list[float], k: int
     closest first, and similarity = 1 - distance.
     """
     vec = Vector(query_embedding)
-    rows = conn.execute(
-        """
-        SELECT section, title, content, 1 - (embedding <=> %s) AS similarity
-        FROM chunks
-        ORDER BY embedding <=> %s
-        LIMIT %s
-        """,
-        (vec, vec, k),
-    ).fetchall()
-    return [SearchResult(section=r[0], title=r[1], content=r[2], similarity=float(r[3])) for r in rows]
+    rows = conn.execute(_SEARCH_SQL, (vec, vec, k)).fetchall()
+    return [_to_result(r) for r in rows]
+
+
+async def asearch_chunks(
+    conn: psycopg.AsyncConnection, query_embedding: list[float], k: int = 5
+) -> list[SearchResult]:
+    """Async version of search_chunks, for the API (the connection comes from the pool)."""
+    vec = Vector(query_embedding)
+    cur = await conn.execute(_SEARCH_SQL, (vec, vec, k))
+    return [_to_result(r) for r in await cur.fetchall()]
+
+
+_SEARCH_SQL = """
+    SELECT section, title, content, 1 - (embedding <=> %s) AS similarity
+    FROM chunks
+    ORDER BY embedding <=> %s
+    LIMIT %s
+"""
+
+
+def _to_result(row) -> SearchResult:
+    return SearchResult(section=row[0], title=row[1], content=row[2], similarity=float(row[3]))

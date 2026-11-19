@@ -40,6 +40,15 @@ class SearchResult:
 
 
 @dataclass(frozen=True, slots=True)
+class Answer:
+    """A validated answer: every id in `cited_ids` is a real source (1-based)."""
+
+    text: str
+    answerable: bool
+    cited_ids: list[int]
+
+
+@dataclass(frozen=True, slots=True)
 class IngestSummary:
     """What an ingestion run did."""
 

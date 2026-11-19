@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     embedding_model: str = "gemini-embedding-2"
     # Must match the column: chunks.embedding is vector(768).
     embedding_dim: int = 768
+    # Cheap, fast model for answering over a few short sources (see Gemini models page).
+    generation_model: str = "gemini-3.5-flash-lite"
 
 
 @lru_cache
