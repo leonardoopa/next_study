@@ -2,16 +2,26 @@ from contextlib import asynccontextmanager
 
 import psycopg
 from fastapi import FastAPI, HTTPException, Request
+from pgvector.psycopg import register_vector_async
 from psycopg_pool import AsyncConnectionPool
 
 from app.config import get_settings
+from app.routers import ask
+
+
+async def _configure(conn) -> None:
+    """Runs once per new connection: teach it the `vector` type, leave it idle."""
+    await register_vector_async(conn)
+    await conn.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: open the pool once. open=False + explicit open() avoids the deprecated
     # "open in constructor" behavior.
-    pool = AsyncConnectionPool(get_settings().database_url, min_size=1, max_size=5, open=False)
+    pool = AsyncConnectionPool(
+        get_settings().database_url, min_size=1, max_size=5, open=False, configure=_configure
+    )
     await pool.open()
     app.state.pool = pool
     try:
@@ -22,6 +32,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="rag-assistant", version="0.1.0", lifespan=lifespan)
+app.include_router(ask.router)
 
 
 @app.get("/health")
