@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 import psycopg
@@ -7,6 +8,8 @@ from psycopg_pool import AsyncConnectionPool
 
 from app.config import get_settings
 from app.routers import ask
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 
 
 async def _configure(conn) -> None:

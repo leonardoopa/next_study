@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     embedding_dim: int = 768
     # Cheap, fast model for answering over a few short sources (see Gemini models page).
     generation_model: str = "gemini-3.5-flash-lite"
+    # Per-request timeout for every Gemini call, in milliseconds (the SDK unit).
+    gemini_timeout_ms: int = 30_000
 
 
 @lru_cache
