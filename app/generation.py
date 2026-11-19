@@ -7,11 +7,13 @@ checked against the sources we actually sent (validate_citations).
 import asyncio
 import re
 
-from google.genai import errors, types
+from collections.abc import AsyncIterator
+
+from google.genai import types
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
-from app.gemini import MAX_RETRIES, client, retry_delay
+from app.gemini import MAX_RETRIES, PROVIDER_ERRORS, client, retry_delay
 from app.schemas import Answer, SearchResult
 
 NOT_FOUND = "Não encontrei essa informação no currículo."
@@ -78,7 +80,7 @@ async def generate_answer(question: str, results: list[SearchResult]) -> Answer:
                 model=get_settings().generation_model, contents=contents, config=config
             )
             break
-        except errors.APIError as exc:
+        except PROVIDER_ERRORS as exc:
             delay = retry_delay(exc, attempt)
             if delay is None:
                 raise
@@ -114,11 +116,27 @@ def extract_citations(text: str, n_sources: int) -> list[int]:
     return sorted(i for i in found if 1 <= i <= n_sources)
 
 
-async def open_stream(question: str, results: list[SearchResult]):
-    """Start the streaming call and return the async iterator of chunks.
+async def _prepend(first, rest):
+    """Yield `first`, then everything else from `rest`."""
+    yield first
+    async for chunk in rest:
+        yield chunk
 
-    Retries here, BEFORE the first byte reaches the user. Once text is flowing, a retry
-    would repeat words the user already saw, so mid-stream errors are not retried.
+
+async def _empty():
+    return
+    yield  # makes this an async generator
+
+
+async def open_stream(question: str, results: list[SearchResult]) -> AsyncIterator:
+    """Start the streaming call, read the FIRST chunk, and return an iterator over all chunks.
+
+    The SDK stream is lazy: awaiting generate_content_stream returns at once and the HTTP
+    request only goes out when we start reading. So the retry loop must include reading
+    the first chunk, otherwise errors like 429 would escape the loop.
+
+    Retries happen only before the first byte reaches the user. Once text is flowing, a
+    retry would repeat words already shown, so mid-stream errors are not retried.
     """
     config = types.GenerateContentConfig(
         system_instruction=STREAM_SYSTEM_INSTRUCTION, temperature=0.0
@@ -127,12 +145,17 @@ async def open_stream(question: str, results: list[SearchResult]):
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            return await client().aio.models.generate_content_stream(
+            stream = await client().aio.models.generate_content_stream(
                 model=get_settings().generation_model, contents=contents, config=config
             )
-        except errors.APIError as exc:
+            first = await anext(stream)  # the request really happens here
+        except StopAsyncIteration:
+            return _empty()  # the model answered with nothing
+        except PROVIDER_ERRORS as exc:
             delay = retry_delay(exc, attempt)
             if delay is None:
                 raise
             await asyncio.sleep(delay)
+        else:
+            return _prepend(first, stream)
     raise AssertionError("unreachable")

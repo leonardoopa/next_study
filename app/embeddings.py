@@ -9,10 +9,10 @@ Documents and questions are embedded differently, so there are separate function
 import asyncio
 import time
 
-from google.genai import errors, types
+from google.genai import types
 
 from app.config import get_settings
-from app.gemini import MAX_RETRIES, client, retry_delay
+from app.gemini import MAX_RETRIES, PROVIDER_ERRORS, client, retry_delay
 from app.schemas import Chunk
 
 BATCH_SIZE = 50  # texts per API call
@@ -50,7 +50,7 @@ def _embed_batch(texts: list[str]) -> list[list[float]]:
         try:
             result = client().models.embed_content(**_request(texts))
             return _vectors(result, len(texts))
-        except errors.APIError as exc:
+        except PROVIDER_ERRORS as exc:
             delay = retry_delay(exc, attempt)
             if delay is None:
                 raise
@@ -63,7 +63,7 @@ async def _aembed_batch(texts: list[str]) -> list[list[float]]:
         try:
             result = await client().aio.models.embed_content(**_request(texts))
             return _vectors(result, len(texts))
-        except errors.APIError as exc:
+        except PROVIDER_ERRORS as exc:
             delay = retry_delay(exc, attempt)
             if delay is None:
                 raise
