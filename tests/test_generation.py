@@ -5,7 +5,9 @@ from app.schemas import SearchResult
 
 
 def _result(title: str) -> SearchResult:
-    return SearchResult(section="S", title=title, content=f"content of {title}", similarity=0.5)
+    return SearchResult(
+        section="S", title=title, content=f"content of {title}", similarity=0.5
+    )
 
 
 def test_prompt_numbers_sources_from_one():
@@ -36,7 +38,9 @@ def test_answer_with_only_invented_citations_is_refused():
 
 
 def test_unanswerable_keeps_the_model_message_and_no_citations():
-    raw = ModelAnswer(answerable=False, answer="O currículo não menciona.", cited_ids=[1])
+    raw = ModelAnswer(
+        answerable=False, answer="O currículo não menciona.", cited_ids=[1]
+    )
     answer = validate_citations(raw, n_sources=3)
     assert answer.answerable is False
     assert answer.cited_ids == []

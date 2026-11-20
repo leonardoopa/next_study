@@ -59,9 +59,13 @@ async def _retrieve(
 
 def _provider_http_error(exc: Exception) -> HTTPException:
     failure = classify(exc)
-    logger.warning("provider error status=%d retryable=%s", failure.status, failure.retryable)
+    logger.warning(
+        "provider error status=%d retryable=%s", failure.status, failure.retryable
+    )
     headers = {"Retry-After": RETRY_AFTER_SECONDS} if failure.retryable else None
-    return HTTPException(status_code=failure.status, detail=failure.detail, headers=headers)
+    return HTTPException(
+        status_code=failure.status, detail=failure.detail, headers=headers
+    )
 
 
 @router.post("/ask", response_model=AskResponse)
@@ -81,7 +85,9 @@ async def ask(body: AskRequest, request: Request) -> AskResponse:
     except ModelOutputError as exc:
         raise HTTPException(status_code=502, detail="model provider error") from exc
 
-    logger.info("ask %s total_ms=%d answerable=%s", timings, _ms(started), answer.answerable)
+    logger.info(
+        "ask %s total_ms=%d answerable=%s", timings, _ms(started), answer.answerable
+    )
     return AskResponse(
         answer=answer.text,
         answerable=answer.answerable,
@@ -126,9 +132,13 @@ async def ask_stream(body: AskRequest, request: Request) -> StreamingResponse:
             failure = classify(exc)
             logger.warning(
                 "stream error mid-way status=%d error=%s code=%s",
-                failure.status, type(exc).__name__, getattr(exc, "code", None),
+                failure.status,
+                type(exc).__name__,
+                getattr(exc, "code", None),
             )
-            yield sse_event("error", {"detail": failure.detail, "retryable": failure.retryable})
+            yield sse_event(
+                "error", {"detail": failure.detail, "retryable": failure.retryable}
+            )
             return
 
         # Text is already on the user's screen, so it cannot be withdrawn. What we can do
@@ -144,7 +154,10 @@ async def ask_stream(body: AskRequest, request: Request) -> StreamingResponse:
         yield sse_event("done", {})
         logger.info(
             "ask_stream %s total_ms=%d chunks=%d answerable=%s",
-            timings, _ms(started), len(parts), bool(cited),
+            timings,
+            _ms(started),
+            len(parts),
+            bool(cited),
         )
 
     return StreamingResponse(
