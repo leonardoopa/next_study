@@ -18,5 +18,9 @@ class Source(BaseModel):
 
 class AskResponse(BaseModel):
     answer: str
-    answerable: bool = Field(description="false when the sources do not contain the answer")
-    sources: list[Source] = Field(description="only the sources the answer actually cites")
+    answerable: bool = Field(
+        description="false when the sources do not contain the answer"
+    )
+    sources: list[Source] = Field(
+        description="only the sources the answer actually cites"
+    )

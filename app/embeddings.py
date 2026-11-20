@@ -34,7 +34,9 @@ def _request(texts: list[str]) -> dict:
     return {
         "model": settings.embedding_model,
         "contents": [types.Content(parts=[types.Part(text=t)]) for t in texts],
-        "config": types.EmbedContentConfig(output_dimensionality=settings.embedding_dim),
+        "config": types.EmbedContentConfig(
+            output_dimensionality=settings.embedding_dim
+        ),
     }
 
 

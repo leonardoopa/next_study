@@ -20,7 +20,9 @@ from app.schemas import Chunk
 
 FULL_LINE_RATIO = 0.9  # a line this close to the max width is considered "wrapped"
 MONTHS = "jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez"
-JOB_HEADING = re.compile(rf"\b({MONTHS})/\d{{4}}\s*[–-]\s*(({MONTHS})/\d{{4}}|atual|presente)", re.I)
+JOB_HEADING = re.compile(
+    rf"\b({MONTHS})/\d{{4}}\s*[–-]\s*(({MONTHS})/\d{{4}}|atual|presente)", re.I
+)
 
 
 def split_sections(lines: list[str]) -> list[tuple[str, list[str]]]:

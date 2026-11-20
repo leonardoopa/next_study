@@ -36,7 +36,9 @@ def ingest_cv(path: Path, name: str) -> IngestSummary:
         known = repository.existing_hashes(conn, document_id)
 
         new = [
-            (i, c, h) for i, (c, h) in enumerate(zip(chunks, hashes, strict=True)) if h not in known
+            (i, c, h)
+            for i, (c, h) in enumerate(zip(chunks, hashes, strict=True))
+            if h not in known
         ]
         # Only new chunks cost an API call.
         vectors = embed_documents([c for _, c, _ in new])
@@ -54,5 +56,8 @@ def ingest_cv(path: Path, name: str) -> IngestSummary:
             removed = repository.delete_stale(conn, document_id, set(hashes))
 
     return IngestSummary(
-        total=len(chunks), new=len(new), existing=len(chunks) - len(new), removed=removed
+        total=len(chunks),
+        new=len(new),
+        existing=len(chunks) - len(new),
+        removed=removed,
     )
