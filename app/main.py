@@ -23,7 +23,11 @@ async def lifespan(app: FastAPI):
     # Startup: open the pool once. open=False + explicit open() avoids the deprecated
     # "open in constructor" behavior.
     pool = AsyncConnectionPool(
-        get_settings().database_url, min_size=1, max_size=5, open=False, configure=_configure
+        get_settings().database_url,
+        min_size=1,
+        max_size=5,
+        open=False,
+        configure=_configure,
     )
     await pool.open()
     app.state.pool = pool
@@ -44,7 +48,9 @@ async def health(request: Request) -> dict:
     try:
         # Short timeout: without it the pool waits 30 s before giving up.
         async with request.app.state.pool.connection(timeout=2) as conn:
-            cur = await conn.execute("SELECT extversion FROM pg_extension WHERE extname = 'vector'")
+            cur = await conn.execute(
+                "SELECT extversion FROM pg_extension WHERE extname = 'vector'"
+            )
             row = await cur.fetchone()
     except (psycopg.Error, TimeoutError) as exc:
         # 503 = dependency down (not a bug in this code, which would be 500).

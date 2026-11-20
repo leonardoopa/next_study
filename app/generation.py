@@ -35,7 +35,9 @@ class ModelAnswer(BaseModel):
 
     answerable: bool = Field(description="true only if the sources contain the answer")
     answer: str = Field(description="answer in Portuguese, citing sources as [1], [2]")
-    cited_ids: list[int] = Field(description="numbers of the sources used in the answer")
+    cited_ids: list[int] = Field(
+        description="numbers of the sources used in the answer"
+    )
 
 
 class ModelOutputError(Exception):
@@ -45,7 +47,8 @@ class ModelOutputError(Exception):
 def build_prompt(question: str, results: list[SearchResult]) -> str:
     """Numbered sources (1-based) followed by the question."""
     sources = "\n\n".join(
-        f"[{i}] {r.section} > {r.title}\n{r.content}" for i, r in enumerate(results, start=1)
+        f"[{i}] {r.section} > {r.title}\n{r.content}"
+        for i, r in enumerate(results, start=1)
     )
     return f"<sources>\n{sources}\n</sources>\n\nQuestion: {question}"
 

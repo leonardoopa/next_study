@@ -26,7 +26,9 @@ def existing_hashes(conn: psycopg.Connection, document_id: int) -> set[str]:
     return {r[0] for r in rows}
 
 
-def insert_chunks(conn: psycopg.Connection, document_id: int, items: list[EmbeddedChunk]) -> None:
+def insert_chunks(
+    conn: psycopg.Connection, document_id: int, items: list[EmbeddedChunk]
+) -> None:
     """Insert new chunks. A (document_id, content_hash) that already exists is skipped."""
     with conn.cursor() as cur:
         cur.executemany(
@@ -51,7 +53,9 @@ def insert_chunks(conn: psycopg.Connection, document_id: int, items: list[Embedd
         )
 
 
-def update_positions(conn: psycopg.Connection, document_id: int, positions: dict[str, int]) -> None:
+def update_positions(
+    conn: psycopg.Connection, document_id: int, positions: dict[str, int]
+) -> None:
     """Keep the order right for chunks that already existed (hash -> new position)."""
     with conn.cursor() as cur:
         cur.executemany(
@@ -60,7 +64,9 @@ def update_positions(conn: psycopg.Connection, document_id: int, positions: dict
         )
 
 
-def delete_stale(conn: psycopg.Connection, document_id: int, keep_hashes: set[str]) -> int:
+def delete_stale(
+    conn: psycopg.Connection, document_id: int, keep_hashes: set[str]
+) -> int:
     """Remove chunks whose text no longer exists in the document. Returns how many."""
     cur = conn.execute(
         "DELETE FROM chunks WHERE document_id = %s AND NOT (content_hash = ANY(%s))",
@@ -69,7 +75,9 @@ def delete_stale(conn: psycopg.Connection, document_id: int, keep_hashes: set[st
     return cur.rowcount
 
 
-def search_chunks(conn: psycopg.Connection, query_embedding: list[float], k: int = 5) -> list[SearchResult]:
+def search_chunks(
+    conn: psycopg.Connection, query_embedding: list[float], k: int = 5
+) -> list[SearchResult]:
     """Top-k chunks closest to the query by cosine distance.
 
     `<=>` is cosine DISTANCE (0 = identical direction), so ORDER BY ascending puts the
@@ -98,4 +106,6 @@ _SEARCH_SQL = """
 
 
 def _to_result(row) -> SearchResult:
-    return SearchResult(section=row[0], title=row[1], content=row[2], similarity=float(row[3]))
+    return SearchResult(
+        section=row[0], title=row[1], content=row[2], similarity=float(row[3])
+    )

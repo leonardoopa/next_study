@@ -49,7 +49,10 @@ def retry_delay(exc: Exception, attempt: int) -> float | None:
     delay = min(2**attempt, 30) + random.random()
     logger.warning(
         "gemini retry attempt=%d error=%s code=%s wait=%.1fs",
-        attempt, type(exc).__name__, code or "-", delay,
+        attempt,
+        type(exc).__name__,
+        code or "-",
+        delay,
     )
     return delay
 
@@ -69,7 +72,9 @@ def classify(exc: Exception) -> ProviderFailure:
     code = getattr(exc, "code", None) or 0
     if code == 429:
         # Our quota with the provider is exhausted: temporary, from the client's view.
-        return ProviderFailure(503, "model quota exceeded, try again shortly", retryable=True)
+        return ProviderFailure(
+            503, "model quota exceeded, try again shortly", retryable=True
+        )
     if code >= 500:
         return ProviderFailure(502, "model provider error", retryable=True)
     return ProviderFailure(502, "model provider error", retryable=False)
