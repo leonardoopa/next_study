@@ -30,8 +30,11 @@ def _fake_client(behaviors):
 
         return gen()
 
-    fake = SimpleNamespace(aio=SimpleNamespace(models=SimpleNamespace(
-        generate_content_stream=generate_content_stream)))
+    fake = SimpleNamespace(
+        aio=SimpleNamespace(
+            models=SimpleNamespace(generate_content_stream=generate_content_stream)
+        )
+    )
     return fake, state
 
 
@@ -41,7 +44,9 @@ def _no_real_waiting(monkeypatch):
         return None
 
     monkeypatch.setattr(generation.asyncio, "sleep", instant)
-    monkeypatch.setattr(generation, "get_settings", lambda: SimpleNamespace(generation_model="m"))
+    monkeypatch.setattr(
+        generation, "get_settings", lambda: SimpleNamespace(generation_model="m")
+    )
 
 
 def _read_all():
