@@ -174,6 +174,22 @@ def search_lexical(conn: psycopg.Connection, query_text: str, limit: int = 5) ->
     ]
 
 
+def _hybrid_params(
+    query_text: str, query_embedding: list[float], limit: int, candidates: int, rrf_k: int
+) -> dict:
+    return {
+        "text": query_text,
+        "emb": Vector(query_embedding),
+        "n": candidates,
+        "k": rrf_k,
+        "limit": limit,
+    }
+
+
+def _to_ranked(r) -> RankedChunk:
+    return RankedChunk(r[0], r[1], r[2], float(r[3]), r[4], r[5])
+
+
 def search_hybrid(
     conn: psycopg.Connection,
     query_text: str,
@@ -186,12 +202,19 @@ def search_hybrid(
 
     Each search contributes its top `candidates`; chunks found by both rise to the top.
     """
-    params = {
-        "text": query_text,
-        "emb": Vector(query_embedding),
-        "n": candidates,
-        "k": rrf_k,
-        "limit": limit,
-    }
-    rows = conn.execute(_HYBRID_SQL, params).fetchall()
-    return [RankedChunk(r[0], r[1], r[2], float(r[3]), r[4], r[5]) for r in rows]
+    params = _hybrid_params(query_text, query_embedding, limit, candidates, rrf_k)
+    return [_to_ranked(r) for r in conn.execute(_HYBRID_SQL, params).fetchall()]
+
+
+async def asearch_hybrid(
+    conn: psycopg.AsyncConnection,
+    query_text: str,
+    query_embedding: list[float],
+    limit: int = 5,
+    candidates: int = 20,
+    rrf_k: int = 60,
+) -> list[RankedChunk]:
+    """Async version of search_hybrid, for the API (connection from the pool)."""
+    params = _hybrid_params(query_text, query_embedding, limit, candidates, rrf_k)
+    cur = await conn.execute(_HYBRID_SQL, params)
+    return [_to_ranked(r) for r in await cur.fetchall()]
