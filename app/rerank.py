@@ -7,6 +7,7 @@ candidates; this step reorders them with a model that sees question and passage 
 The rerank must never take the search down: on any failure the original order is kept.
 """
 
+import asyncio
 import logging
 
 from google.genai import types
@@ -109,9 +110,11 @@ async def rerank(question: str, candidates: list[RankedChunk], top_k: int = 5) -
     if not candidates:
         return RerankResult(chunks=[], used_fallback=False)
     try:
-        scores = await _score(question, candidates)
+        scores = await asyncio.wait_for(
+            _score(question, candidates), timeout=get_settings().rerank_timeout_s
+        )
         return RerankResult(apply_scores(candidates, scores, top_k), used_fallback=False)
-    except (*PROVIDER_ERRORS, ValueError) as exc:
+    except (*PROVIDER_ERRORS, ValueError, TimeoutError) as exc:
         # Better a slightly worse order than no answer at all.
         logger.warning("rerank failed (%s), keeping the original order", type(exc).__name__)
         return RerankResult(_unchanged(candidates, top_k), used_fallback=True)
