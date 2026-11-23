@@ -40,6 +40,35 @@ class SearchResult:
 
 
 @dataclass(frozen=True, slots=True)
+class RankedChunk:
+    """A hit from lexical or hybrid search, with where each search ranked it (1 = best)."""
+
+    section: str
+    title: str
+    content: str
+    score: float  # lexical: ts_rank; hybrid: RRF score. Not comparable across methods.
+    vector_rank: int | None  # None when the vector search did not return it
+    lexical_rank: int | None  # None when the keyword search did not return it
+
+
+@dataclass(frozen=True, slots=True)
+class RerankedChunk:
+    """A candidate after the rerank step."""
+
+    section: str
+    title: str
+    content: str
+    original_rank: int  # position before reranking (1 = best)
+    rerank_score: float | None  # 0 to 10; None when the rerank fell back to the old order
+
+
+@dataclass(frozen=True, slots=True)
+class RerankResult:
+    chunks: list[RerankedChunk]
+    used_fallback: bool  # True when the rerank failed and the original order was kept
+
+
+@dataclass(frozen=True, slots=True)
 class Answer:
     """A validated answer: every id in `cited_ids` is a real source (1-based)."""
 
