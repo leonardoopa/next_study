@@ -3,7 +3,7 @@
 import psycopg
 from pgvector import Vector
 
-from app.schemas import EmbeddedChunk, SearchResult
+from app.schemas import EmbeddedChunk, RankedChunk, SearchResult
 
 
 def upsert_document(conn: psycopg.Connection, name: str, source_path: str) -> int:
@@ -109,3 +109,89 @@ def _to_result(row) -> SearchResult:
     return SearchResult(
         section=row[0], title=row[1], content=row[2], similarity=float(row[3])
     )
+
+
+# --- Lexical and hybrid search ---------------------------------------------------------
+# The question becomes a tsquery with OR between terms. websearch_to_tsquery joins terms
+# with AND, which is too strict for natural questions ("conhece" would have to appear in
+# the chunk). With OR, any matching term qualifies and ts_rank orders by how well.
+_TSQUERY_SQL = """
+    SELECT replace(
+        websearch_to_tsquery('portuguese', immutable_unaccent(%(text)s))::text, '&', '|'
+    )::tsquery AS tsq
+"""
+
+_LEXICAL_SQL = f"""
+    WITH q AS ({_TSQUERY_SQL})
+    SELECT c.section, c.title, c.content, ts_rank(c.tsv, q.tsq, 1) AS score
+    FROM chunks c, q
+    WHERE c.tsv @@ q.tsq
+    ORDER BY score DESC, c.id
+    LIMIT %(limit)s
+"""
+
+# RRF: each list contributes 1 / (k + rank). Only positions are used, never raw scores,
+# because cosine and ts_rank live on different scales.
+_HYBRID_SQL = f"""
+    WITH q AS ({_TSQUERY_SQL}),
+    vec AS (
+        SELECT id, row_number() OVER (ORDER BY d, id) AS rnk
+        FROM (
+            SELECT id, embedding <=> %(emb)s AS d FROM chunks ORDER BY d LIMIT %(n)s
+        ) s
+    ),
+    lex AS (
+        SELECT id, row_number() OVER (ORDER BY r DESC, id) AS rnk
+        FROM (
+            SELECT c.id, ts_rank(c.tsv, q.tsq, 1) AS r
+            FROM chunks c, q
+            WHERE c.tsv @@ q.tsq
+            ORDER BY r DESC
+            LIMIT %(n)s
+        ) s
+    ),
+    fused AS (
+        SELECT id, sum(1.0 / (%(k)s + rnk)) AS rrf
+        FROM (SELECT id, rnk FROM vec UNION ALL SELECT id, rnk FROM lex) both_lists
+        GROUP BY id
+    )
+    SELECT c.section, c.title, c.content, f.rrf, v.rnk, l.rnk
+    FROM fused f
+    JOIN chunks c ON c.id = f.id
+    LEFT JOIN vec v ON v.id = f.id
+    LEFT JOIN lex l ON l.id = f.id
+    ORDER BY f.rrf DESC, c.id
+    LIMIT %(limit)s
+"""
+
+
+def search_lexical(conn: psycopg.Connection, query_text: str, limit: int = 5) -> list[RankedChunk]:
+    """Keyword search: Postgres full-text search, Portuguese, accent-insensitive."""
+    rows = conn.execute(_LEXICAL_SQL, {"text": query_text, "limit": limit}).fetchall()
+    return [
+        RankedChunk(r[0], r[1], r[2], float(r[3]), vector_rank=None, lexical_rank=i)
+        for i, r in enumerate(rows, start=1)
+    ]
+
+
+def search_hybrid(
+    conn: psycopg.Connection,
+    query_text: str,
+    query_embedding: list[float],
+    limit: int = 5,
+    candidates: int = 20,
+    rrf_k: int = 60,
+) -> list[RankedChunk]:
+    """Vector search + keyword search, fused with Reciprocal Rank Fusion.
+
+    Each search contributes its top `candidates`; chunks found by both rise to the top.
+    """
+    params = {
+        "text": query_text,
+        "emb": Vector(query_embedding),
+        "n": candidates,
+        "k": rrf_k,
+        "limit": limit,
+    }
+    rows = conn.execute(_HYBRID_SQL, params).fetchall()
+    return [RankedChunk(r[0], r[1], r[2], float(r[3]), r[4], r[5]) for r in rows]

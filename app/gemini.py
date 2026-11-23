@@ -1,5 +1,6 @@
 """Shared Gemini plumbing: one client, one retry policy, one error classification."""
 
+import asyncio
 import logging
 import random
 from dataclasses import dataclass
@@ -78,3 +79,20 @@ def classify(exc: Exception) -> ProviderFailure:
     if code >= 500:
         return ProviderFailure(502, "model provider error", retryable=True)
     return ProviderFailure(502, "model provider error", retryable=False)
+
+
+async def call_with_retry(make_call):
+    """Await `make_call()`, retrying provider errors with the shared policy (retry_delay).
+
+    `make_call` is a zero-argument function that returns the awaitable, so every attempt
+    builds a fresh request.
+    """
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            return await make_call()
+        except PROVIDER_ERRORS as exc:
+            delay = retry_delay(exc, attempt)
+            if delay is None:
+                raise
+            await asyncio.sleep(delay)
+    raise AssertionError("unreachable")
