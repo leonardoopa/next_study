@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     generation_model: str = "gemini-3.5-flash-lite"
     # Per-request timeout for every Gemini call, in milliseconds (the SDK unit).
     gemini_timeout_ms: int = 30_000
+    # Model that scores candidates in the rerank step (an extra LLM call per question).
+    rerank_model: str = "gemini-3.5-flash-lite"
 
 
 @lru_cache
