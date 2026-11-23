@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Protocol
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +67,33 @@ class RerankedChunk:
 class RerankResult:
     chunks: list[RerankedChunk]
     used_fallback: bool  # True when the rerank failed and the original order was kept
+
+
+class Passage(Protocol):
+    """What the generation step needs from a retrieved chunk: any retrieval mode fits."""
+
+    section: str
+    title: str
+    content: str
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievedChunk:
+    """A chunk chosen for the prompt, with how each retrieval step saw it."""
+
+    section: str
+    title: str
+    content: str
+    similarity: float | None = None  # cosine; only set by the vector mode
+    vector_rank: int | None = None
+    lexical_rank: int | None = None
+    rerank_score: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Retrieval:
+    chunks: list[RetrievedChunk]
+    rerank_fallback: bool = False  # the rerank failed or timed out; original order kept
 
 
 @dataclass(frozen=True, slots=True)

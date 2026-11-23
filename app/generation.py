@@ -7,14 +7,14 @@ checked against the sources we actually sent (validate_citations).
 import asyncio
 import re
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 
 from google.genai import types
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.gemini import MAX_RETRIES, PROVIDER_ERRORS, client, retry_delay
-from app.schemas import Answer, SearchResult
+from app.schemas import Answer, Passage
 
 NOT_FOUND = "Não encontrei essa informação no currículo."
 
@@ -44,7 +44,7 @@ class ModelOutputError(Exception):
     """The model returned something that does not match ModelAnswer."""
 
 
-def build_prompt(question: str, results: list[SearchResult]) -> str:
+def build_prompt(question: str, results: Sequence[Passage]) -> str:
     """Numbered sources (1-based) followed by the question."""
     sources = "\n\n".join(
         f"[{i}] {r.section} > {r.title}\n{r.content}"
@@ -65,7 +65,7 @@ def validate_citations(raw: ModelAnswer, n_sources: int) -> Answer:
     return Answer(text=raw.answer, answerable=True, cited_ids=valid)
 
 
-async def generate_answer(question: str, results: list[SearchResult]) -> Answer:
+async def generate_answer(question: str, results: Sequence[Passage]) -> Answer:
     if not results:
         return Answer(text=NOT_FOUND, answerable=False, cited_ids=[])
 
@@ -131,7 +131,7 @@ async def _empty():
     yield  # makes this an async generator
 
 
-async def open_stream(question: str, results: list[SearchResult]) -> AsyncIterator:
+async def open_stream(question: str, results: Sequence[Passage]) -> AsyncIterator:
     """Start the streaming call, read the FIRST chunk, and return an iterator over all chunks.
 
     The SDK stream is lazy: awaiting generate_content_stream returns at once and the HTTP
