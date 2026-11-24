@@ -1,0 +1,2332 @@
+{
+  "meta": {
+    "date": "2026-11-24",
+    "document": "lgpd",
+    "depth": 10,
+    "golden": "eval/lgpd_golden.jsonl",
+    "embedding_model": "gemini-embedding-2",
+    "rerank_model": "gemini-3.5-flash-lite",
+    "rerank_timeout_s": 8.0
+  },
+  "summary": [
+    {
+      "mode": "vector",
+      "n": 35,
+      "hit@1": 0.8571428571428571,
+      "recall@1": 0.7571428571428571,
+      "hit@3": 0.9714285714285714,
+      "recall@3": 0.9714285714285714,
+      "hit@5": 1.0,
+      "recall@5": 0.9857142857142858,
+      "mrr": 0.9104761904761904,
+      "ms_p50": 2,
+      "ms_p90": 5,
+      "fallbacks": 0
+    },
+    {
+      "mode": "lexical",
+      "n": 35,
+      "hit@1": 0.2571428571428571,
+      "recall@1": 0.22857142857142856,
+      "hit@3": 0.5714285714285714,
+      "recall@3": 0.5142857142857142,
+      "hit@5": 0.6285714285714286,
+      "recall@5": 0.5714285714285714,
+      "mrr": 0.42170068027210883,
+      "ms_p50": 1,
+      "ms_p90": 3,
+      "fallbacks": 0
+    },
+    {
+      "mode": "hybrid",
+      "n": 35,
+      "hit@1": 0.5142857142857142,
+      "recall@1": 0.45714285714285713,
+      "hit@3": 0.7142857142857143,
+      "recall@3": 0.6714285714285714,
+      "hit@5": 0.7714285714285715,
+      "recall@5": 0.7428571428571429,
+      "mrr": 0.6434807256235827,
+      "ms_p50": 2,
+      "ms_p90": 2,
+      "fallbacks": 0
+    },
+    {
+      "mode": "hybrid_rerank",
+      "n": 35,
+      "hit@1": 0.6571428571428571,
+      "recall@1": 0.5857142857142857,
+      "hit@3": 0.8571428571428571,
+      "recall@3": 0.8,
+      "hit@5": 0.8857142857142857,
+      "recall@5": 0.8571428571428571,
+      "mrr": 0.7645238095238095,
+      "ms_p50": 8008,
+      "ms_p90": 8016,
+      "fallbacks": 21
+    }
+  ],
+  "by_category": [
+    {
+      "category": "exato",
+      "n": 8,
+      "vector": {
+        "hit@3": 1.0,
+        "mrr": 0.8541666666666666
+      },
+      "lexical": {
+        "hit@3": 0.875,
+        "mrr": 0.6666666666666666
+      },
+      "hybrid": {
+        "hit@3": 0.875,
+        "mrr": 0.8958333333333334
+      },
+      "hybrid_rerank": {
+        "hit@3": 0.875,
+        "mrr": 0.8958333333333334
+      }
+    },
+    {
+      "category": "parafrase",
+      "n": 14,
+      "vector": {
+        "hit@3": 1.0,
+        "mrr": 0.9642857142857143
+      },
+      "lexical": {
+        "hit@3": 0.2857142857142857,
+        "mrr": 0.2304421768707483
+      },
+      "hybrid": {
+        "hit@3": 0.5,
+        "mrr": 0.49441609977324263
+      },
+      "hybrid_rerank": {
+        "hit@3": 0.7857142857142857,
+        "mrr": 0.7375
+      }
+    },
+    {
+      "category": "tema",
+      "n": 8,
+      "vector": {
+        "hit@3": 1.0,
+        "mrr": 0.9166666666666666
+      },
+      "lexical": {
+        "hit@3": 0.625,
+        "mrr": 0.44166666666666665
+      },
+      "hybrid": {
+        "hit@3": 0.75,
+        "mrr": 0.6375
+      },
+      "hybrid_rerank": {
+        "hit@3": 0.875,
+        "mrr": 0.7416666666666667
+      }
+    },
+    {
+      "category": "multi",
+      "n": 5,
+      "vector": {
+        "hit@3": 0.8,
+        "mrr": 0.84
+      },
+      "lexical": {
+        "hit@3": 0.8,
+        "mrr": 0.5333333333333333
+      },
+      "hybrid": {
+        "hit@3": 1.0,
+        "mrr": 0.6666666666666666
+      },
+      "hybrid_rerank": {
+        "hit@3": 1.0,
+        "mrr": 0.6666666666666666
+      }
+    }
+  ],
+  "questions": [
+    {
+      "id": "q01",
+      "category": "exato",
+      "question": "O que o Art. 18 da LGPD garante a quem teve os dados coletados?",
+      "expected": [
+        "Art. 18"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 9",
+            "Art. 19",
+            "Art. 17",
+            "Art. 20"
+          ],
+          "ms": 5,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 38",
+            "Art. 22",
+            "Art. 17",
+            "Art. 14",
+            "Art. 47"
+          ],
+          "ms": 3,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 6,
+          "top5": [
+            "Art. 17",
+            "Art. 22",
+            "Art. 38",
+            "Art. 9",
+            "Art. 14"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 6,
+          "top5": [
+            "Art. 17",
+            "Art. 22",
+            "Art. 38",
+            "Art. 9",
+            "Art. 14"
+          ],
+          "ms": 8011,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q02",
+      "category": "exato",
+      "question": "Quais são as atividades do encarregado?",
+      "expected": [
+        "Art. 41"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 41",
+            "Art. 5",
+            "Art. 39",
+            "Art. 38",
+            "Art. 55-J"
+          ],
+          "ms": 6,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 41",
+            "Art. 5",
+            "Art. 55-J",
+            "Art. 23",
+            "Art. 30"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 41",
+            "Art. 5",
+            "Art. 55-J",
+            "Art. 44",
+            "Art. 50"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 41",
+            "Art. 5",
+            "Art. 55-J",
+            "Art. 44",
+            "Art. 50"
+          ],
+          "ms": 1391,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q03",
+      "category": "exato",
+      "question": "Qual é o limite da multa simples por infração?",
+      "expected": [
+        "Art. 52"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 3,
+          "top5": [
+            "Art. 54",
+            "Art. 53",
+            "Art. 52",
+            "Art. 55-K",
+            "Art. 31"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 53",
+            "Art. 54",
+            "Art. 31",
+            "Art. 55-F"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 53",
+            "Art. 54",
+            "Art. 31",
+            "Art. 55-F"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 53",
+            "Art. 54",
+            "Art. 31",
+            "Art. 55-F"
+          ],
+          "ms": 8023,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q04",
+      "category": "exato",
+      "question": "O que é a ANPD e como ela foi criada?",
+      "expected": [
+        "Art. 55-A"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-A",
+            "Art. 55-D",
+            "Art. 55-C",
+            "Art. 55-G",
+            "Art. 55-J"
+          ],
+          "ms": 3,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-A",
+            "Art. 55-G",
+            "Art. 55-H",
+            "Art. 55-M",
+            "Art. 55-I"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-A",
+            "Art. 55-G",
+            "Art. 55-D",
+            "Art. 55-M",
+            "Art. 55-C"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-A",
+            "Art. 55-G",
+            "Art. 55-D",
+            "Art. 55-M",
+            "Art. 55-C"
+          ],
+          "ms": 2003,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q05",
+      "category": "exato",
+      "question": "Quantos diretores tem o Conselho Diretor da ANPD?",
+      "expected": [
+        "Art. 55-D"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-D",
+            "Art. 55-C",
+            "Art. 58-A",
+            "Art. 55-I",
+            "Art. 55-E"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 3,
+          "top5": [
+            "Art. 55-I",
+            "Art. 55-G",
+            "Art. 55-D",
+            "Art. 55-C",
+            "Art. 55-F"
+          ],
+          "ms": 0,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-D",
+            "Art. 55-I",
+            "Art. 55-C",
+            "Art. 55-G",
+            "Art. 55-E"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 55-D",
+            "Art. 55-I",
+            "Art. 55-C",
+            "Art. 55-G",
+            "Art. 55-E"
+          ],
+          "ms": 8008,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q06",
+      "category": "exato",
+      "question": "Quantos representantes compõem o Conselho Nacional de Proteção de Dados Pessoais e da Privacidade?",
+      "expected": [
+        "Art. 58-A"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 58-A",
+            "Art. 58-B",
+            "Art. 55-D",
+            "Art. 55-C",
+            "Art. 55-I"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 58-B",
+            "Art. 58-A",
+            "Art. 55-C",
+            "Art. 32",
+            "Art. 55-J"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 58-A",
+            "Art. 58-B",
+            "Art. 55-C",
+            "Art. 55-J",
+            "Art. 1"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 58-A",
+            "Art. 58-B",
+            "Art. 55-C",
+            "Art. 55-J",
+            "Art. 1"
+          ],
+          "ms": 8012,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q07",
+      "category": "exato",
+      "question": "O que a lei define como dado pessoal sensível?",
+      "expected": [
+        "Art. 5"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 2,
+          "top5": [
+            "Art. 11",
+            "Art. 5",
+            "Art. 13",
+            "Art. 12",
+            "Art. 7"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 20",
+            "Art. 52",
+            "Art. 63",
+            "Art. 17"
+          ],
+          "ms": 0,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 17",
+            "Art. 4",
+            "Art. 3",
+            "Art. 11"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 11",
+            "Art. 17",
+            "Art. 4",
+            "Art. 3"
+          ],
+          "ms": 1465,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q08",
+      "category": "exato",
+      "question": "O que diz o Art. 65 sobre quando a lei entra em vigor?",
+      "expected": [
+        "Art. 65"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 65",
+            "Art. 64",
+            "Art. 60",
+            "Art. 63",
+            "Art. 5"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 63",
+            "Art. 65",
+            "Art. 60",
+            "Art. 55-G",
+            "Art. 1"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 65",
+            "Art. 63",
+            "Art. 60",
+            "Art. 1",
+            "Art. 29"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 65",
+            "Art. 63",
+            "Art. 60",
+            "Art. 1",
+            "Art. 29"
+          ],
+          "ms": 8016,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q09",
+      "category": "parafrase",
+      "question": "Preciso da autorização da pessoa para usar os dados dela?",
+      "expected": [
+        "Art. 7"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 7",
+            "Art. 8",
+            "Art. 9",
+            "Art. 27",
+            "Art. 3"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 5",
+            "Art. 6",
+            "Art. 32",
+            "Art. 17",
+            "Art. 51"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 7,
+          "top5": [
+            "Art. 17",
+            "Art. 27",
+            "Art. 3",
+            "Art. 4",
+            "Art. 30"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 7",
+            "Art. 8",
+            "Art. 17",
+            "Art. 27",
+            "Art. 5"
+          ],
+          "ms": 1430,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q10",
+      "category": "parafrase",
+      "question": "Posso mudar de ideia e pedir que parem de usar o que eu já liberei?",
+      "expected": [
+        "Art. 8",
+        "Art. 18"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 8",
+            "Art. 15",
+            "Art. 18",
+            "Art. 7",
+            "Art. 16"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 50",
+            "Art. 48",
+            "Art. 7",
+            "Art. 5"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 7",
+            "Art. 8",
+            "Art. 15",
+            "Art. 50"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 7",
+            "Art. 8",
+            "Art. 15",
+            "Art. 50"
+          ],
+          "ms": 8031,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q11",
+      "category": "parafrase",
+      "question": "Uma empresa pode guardar informações de menores de idade?",
+      "expected": [
+        "Art. 14"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 14",
+            "Art. 16",
+            "Art. 9",
+            "Art. 19",
+            "Art. 7"
+          ],
+          "ms": 4,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 29",
+            "Art. 40",
+            "Art. 24",
+            "Art. 9",
+            "Art. 20"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 5,
+          "top5": [
+            "Art. 9",
+            "Art. 19",
+            "Art. 38",
+            "Art. 48",
+            "Art. 14"
+          ],
+          "ms": 3,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 5,
+          "top5": [
+            "Art. 9",
+            "Art. 19",
+            "Art. 38",
+            "Art. 48",
+            "Art. 14"
+          ],
+          "ms": 8016,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q12",
+      "category": "parafrase",
+      "question": "Se descobrirem que minhas informações vazaram, quem precisa ser avisado?",
+      "expected": [
+        "Art. 48"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 48",
+            "Art. 52",
+            "Art. 38",
+            "Art. 42",
+            "Art. 9"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 7,
+          "top5": [
+            "Art. 25",
+            "Art. 9",
+            "Art. 14",
+            "Art. 41",
+            "Art. 50"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 2,
+          "top5": [
+            "Art. 9",
+            "Art. 48",
+            "Art. 41",
+            "Art. 19",
+            "Art. 46"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 2,
+          "top5": [
+            "Art. 9",
+            "Art. 48",
+            "Art. 41",
+            "Art. 19",
+            "Art. 46"
+          ],
+          "ms": 8016,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q13",
+      "category": "parafrase",
+      "question": "O que acontece com os dados de um cliente quando ele para de usar o serviço?",
+      "expected": [
+        "Art. 15",
+        "Art. 16"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 15",
+            "Art. 16",
+            "Art. 60",
+            "Art. 18",
+            "Art. 19"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 25",
+            "Art. 11",
+            "Art. 3",
+            "Art. 10",
+            "Art. 46"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 8,
+          "top5": [
+            "Art. 18",
+            "Art. 25",
+            "Art. 9",
+            "Art. 23",
+            "Art. 3"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 8,
+          "top5": [
+            "Art. 18",
+            "Art. 25",
+            "Art. 9",
+            "Art. 23",
+            "Art. 3"
+          ],
+          "ms": 8028,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q14",
+      "category": "parafrase",
+      "question": "Uma decisão tomada só por um algoritmo, como negar um empréstimo, pode ser contestada?",
+      "expected": [
+        "Art. 20"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 20",
+            "Art. 42",
+            "Art. 45",
+            "Art. 7",
+            "Art. 8"
+          ],
+          "ms": 5,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 3,
+          "top5": [
+            "Art. 21",
+            "Art. 41",
+            "Art. 20",
+            "Art. 22",
+            "Art. 4"
+          ],
+          "ms": 3,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 20",
+            "Art. 8",
+            "Art. 9",
+            "Art. 21",
+            "Art. 18"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 20",
+            "Art. 8",
+            "Art. 9",
+            "Art. 21",
+            "Art. 18"
+          ],
+          "ms": 1410,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q15",
+      "category": "parafrase",
+      "question": "Quem paga o prejuízo quando uma empresa faz mau uso das informações de alguém?",
+      "expected": [
+        "Art. 42"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 42",
+            "Art. 44",
+            "Art. 45",
+            "Art. 43",
+            "Art. 21"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 25",
+            "Art. 9",
+            "Art. 55-L",
+            "Art. 14",
+            "Art. 48"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 9,
+          "top5": [
+            "Art. 48",
+            "Art. 21",
+            "Art. 9",
+            "Art. 31",
+            "Art. 20"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 42",
+            "Art. 44",
+            "Art. 48",
+            "Art. 21",
+            "Art. 9"
+          ],
+          "ms": 1464,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q16",
+      "category": "parafrase",
+      "question": "Em que situações a empresa escapa da culpa por um dano com informações pessoais?",
+      "expected": [
+        "Art. 43"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 43",
+            "Art. 44",
+            "Art. 42",
+            "Art. 45",
+            "Art. 48"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 43",
+            "Art. 6",
+            "Art. 46",
+            "Art. 48",
+            "Art. 61"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 43",
+            "Art. 44",
+            "Art. 48",
+            "Art. 42",
+            "Art. 46"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 43",
+            "Art. 42",
+            "Art. 44",
+            "Art. 48",
+            "Art. 46"
+          ],
+          "ms": 1336,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q17",
+      "category": "parafrase",
+      "question": "Posso mandar informações de clientes brasileiros para servidores em outro país?",
+      "expected": [
+        "Art. 33"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 33",
+            "Art. 34",
+            "Art. 3",
+            "Art. 36",
+            "Art. 35"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 14",
+            "Art. 4",
+            "Art. 55-J",
+            "Art. 29",
+            "Art. 34"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 3,
+          "top5": [
+            "Art. 34",
+            "Art. 14",
+            "Art. 33",
+            "Art. 3",
+            "Art. 9"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 3,
+          "top5": [
+            "Art. 34",
+            "Art. 14",
+            "Art. 33",
+            "Art. 3",
+            "Art. 9"
+          ],
+          "ms": 8010,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q18",
+      "category": "parafrase",
+      "question": "A empresa é obrigada a ter proteção técnica contra invasões?",
+      "expected": [
+        "Art. 46"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 46",
+            "Art. 48",
+            "Art. 49",
+            "Art. 44",
+            "Art. 47"
+          ],
+          "ms": 4,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 48",
+            "Art. 55-J",
+            "Art. 42",
+            "Art. 55-A",
+            "Art. 55-L"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 7,
+          "top5": [
+            "Art. 48",
+            "Art. 42",
+            "Art. 4",
+            "Art. 47",
+            "Art. 51"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 46",
+            "Art. 44",
+            "Art. 48",
+            "Art. 42",
+            "Art. 47"
+          ],
+          "ms": 5356,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q19",
+      "category": "parafrase",
+      "question": "Informações que já não identificam mais ninguém continuam protegidas pela lei?",
+      "expected": [
+        "Art. 12"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 12",
+            "Art. 16",
+            "Art. 4",
+            "Art. 13",
+            "Art. 15"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 4,
+          "top5": [
+            "Art. 46",
+            "Art. 55-J",
+            "Art. 9",
+            "Art. 12",
+            "Art. 52"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 12",
+            "Art. 9",
+            "Art. 23",
+            "Art. 4",
+            "Art. 5"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 12",
+            "Art. 9",
+            "Art. 23",
+            "Art. 4",
+            "Art. 5"
+          ],
+          "ms": 1277,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q20",
+      "category": "parafrase",
+      "question": "Quanto tempo a empresa tem para me mostrar tudo o que sabe sobre mim?",
+      "expected": [
+        "Art. 19"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 19",
+            "Art. 18",
+            "Art. 9",
+            "Art. 20",
+            "Art. 15"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 55-J",
+            "Art. 40",
+            "Art. 12",
+            "Art. 39",
+            "Art. 55-G"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 6,
+          "top5": [
+            "Art. 40",
+            "Art. 9",
+            "Art. 18",
+            "Art. 23",
+            "Art. 29"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 6,
+          "top5": [
+            "Art. 40",
+            "Art. 9",
+            "Art. 18",
+            "Art. 23",
+            "Art. 29"
+          ],
+          "ms": 8012,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q21",
+      "category": "parafrase",
+      "question": "Que punições uma empresa pode receber por descumprir a lei?",
+      "expected": [
+        "Art. 52"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 54",
+            "Art. 53",
+            "Art. 44",
+            "Art. 55-F"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 24",
+            "Art. 52",
+            "Art. 55-J",
+            "Art. 42",
+            "Art. 18"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 24",
+            "Art. 42",
+            "Art. 54",
+            "Art. 31"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 52",
+            "Art. 54",
+            "Art. 42",
+            "Art. 31",
+            "Art. 55-J"
+          ],
+          "ms": 1333,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q22",
+      "category": "parafrase",
+      "question": "Uma prefeitura pode entregar o cadastro dos moradores a uma firma particular?",
+      "expected": [
+        "Art. 27",
+        "Art. 26"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 2,
+          "top5": [
+            "Art. 23",
+            "Art. 27",
+            "Art. 26",
+            "Art. 7",
+            "Art. 4"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 24",
+            "Art. 32",
+            "Art. 11",
+            "Art. 29",
+            "Art. 21"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 5,
+          "top5": [
+            "Art. 4",
+            "Art. 24",
+            "Art. 30",
+            "Art. 23",
+            "Art. 26"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 26",
+            "Art. 4",
+            "Art. 23",
+            "Art. 24",
+            "Art. 30"
+          ],
+          "ms": 1306,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q23",
+      "category": "tema",
+      "question": "Quais são os princípios que devem ser seguidos ao lidar com dados pessoais?",
+      "expected": [
+        "Art. 6"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 6",
+            "Art. 7",
+            "Art. 2",
+            "Art. 9",
+            "Art. 23"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 49",
+            "Art. 9",
+            "Art. 1",
+            "Art. 7",
+            "Art. 18"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 10,
+          "top5": [
+            "Art. 9",
+            "Art. 7",
+            "Art. 49",
+            "Art. 1",
+            "Art. 23"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 10,
+          "top5": [
+            "Art. 9",
+            "Art. 7",
+            "Art. 49",
+            "Art. 1",
+            "Art. 23"
+          ],
+          "ms": 8010,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q24",
+      "category": "tema",
+      "question": "O que a lei considera legítimo interesse?",
+      "expected": [
+        "Art. 10"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 10",
+            "Art. 37",
+            "Art. 23",
+            "Art. 7",
+            "Art. 9"
+          ],
+          "ms": 4,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 10",
+            "Art. 37",
+            "Art. 1",
+            "Art. 15",
+            "Art. 23"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 10",
+            "Art. 37",
+            "Art. 23",
+            "Art. 7",
+            "Art. 1"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 10",
+            "Art. 37",
+            "Art. 7",
+            "Art. 23",
+            "Art. 1"
+          ],
+          "ms": 1262,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q25",
+      "category": "tema",
+      "question": "O que significa tratar dados na LGPD?",
+      "expected": [
+        "Art. 5"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 7",
+            "Art. 3",
+            "Art. 9",
+            "Art. 15"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": null,
+          "top5": [
+            "Art. 4",
+            "Art. 13",
+            "Art. 18",
+            "Art. 62",
+            "Art. 46"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 6,
+          "top5": [
+            "Art. 13",
+            "Art. 23",
+            "Art. 10",
+            "Art. 14",
+            "Art. 4"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 13",
+            "Art. 23",
+            "Art. 10",
+            "Art. 14"
+          ],
+          "ms": 5114,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q26",
+      "category": "tema",
+      "question": "Em quais situações a LGPD não se aplica?",
+      "expected": [
+        "Art. 4"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 4",
+            "Art. 3",
+            "Art. 7",
+            "Art. 15",
+            "Art. 43"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 55-J",
+            "Art. 4",
+            "Art. 52",
+            "Art. 44",
+            "Art. 6"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 4",
+            "Art. 43",
+            "Art. 9",
+            "Art. 55-J",
+            "Art. 3"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 4",
+            "Art. 43",
+            "Art. 9",
+            "Art. 55-J",
+            "Art. 3"
+          ],
+          "ms": 8008,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q27",
+      "category": "tema",
+      "question": "Posso pedir a portabilidade dos meus dados para outro fornecedor?",
+      "expected": [
+        "Art. 18"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 40",
+            "Art. 19",
+            "Art. 60",
+            "Art. 33"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 50",
+            "Art. 55-K",
+            "Art. 47",
+            "Art. 29"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 40",
+            "Art. 19",
+            "Art. 11",
+            "Art. 26"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 18",
+            "Art. 40",
+            "Art. 19",
+            "Art. 11",
+            "Art. 26"
+          ],
+          "ms": 8011,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q28",
+      "category": "tema",
+      "question": "Qual é a diferença entre controlador e operador?",
+      "expected": [
+        "Art. 5"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 3,
+          "top5": [
+            "Art. 39",
+            "Art. 37",
+            "Art. 5",
+            "Art. 42",
+            "Art. 50"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 3,
+          "top5": [
+            "Art. 37",
+            "Art. 39",
+            "Art. 5",
+            "Art. 42",
+            "Art. 50"
+          ],
+          "ms": 0,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 3,
+          "top5": [
+            "Art. 37",
+            "Art. 39",
+            "Art. 5",
+            "Art. 42",
+            "Art. 50"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 3,
+          "top5": [
+            "Art. 37",
+            "Art. 39",
+            "Art. 5",
+            "Art. 42",
+            "Art. 50"
+          ],
+          "ms": 8009,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q29",
+      "category": "tema",
+      "question": "Como o consentimento precisa ser dado para valer?",
+      "expected": [
+        "Art. 8"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 8",
+            "Art. 7",
+            "Art. 9",
+            "Art. 11",
+            "Art. 14"
+          ],
+          "ms": 6,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 5,
+          "top5": [
+            "Art. 27",
+            "Art. 7",
+            "Art. 14",
+            "Art. 9",
+            "Art. 8"
+          ],
+          "ms": 5,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 2,
+          "top5": [
+            "Art. 7",
+            "Art. 8",
+            "Art. 9",
+            "Art. 27",
+            "Art. 14"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 2,
+          "top5": [
+            "Art. 7",
+            "Art. 8",
+            "Art. 9",
+            "Art. 27",
+            "Art. 14"
+          ],
+          "ms": 8016,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q30",
+      "category": "tema",
+      "question": "O que é um relatório de impacto à proteção de dados pessoais?",
+      "expected": [
+        "Art. 5",
+        "Art. 38"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 38",
+            "Art. 5",
+            "Art. 32",
+            "Art. 55-A",
+            "Art. 44"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 32",
+            "Art. 38",
+            "Art. 10",
+            "Art. 58-B",
+            "Art. 55-J"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 38",
+            "Art. 32",
+            "Art. 5",
+            "Art. 10",
+            "Art. 55-J"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 5",
+            "Art. 38",
+            "Art. 32",
+            "Art. 10",
+            "Art. 55-J"
+          ],
+          "ms": 5291,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q31",
+      "category": "multi",
+      "question": "Quais são as bases legais para tratar dados e como o consentimento deve ser obtido?",
+      "expected": [
+        "Art. 7",
+        "Art. 8"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 7",
+            "Art. 8",
+            "Art. 9",
+            "Art. 10",
+            "Art. 14"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 14",
+            "Art. 8",
+            "Art. 13",
+            "Art. 18",
+            "Art. 10"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 8",
+            "Art. 14",
+            "Art. 9",
+            "Art. 10",
+            "Art. 7"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 8",
+            "Art. 14",
+            "Art. 9",
+            "Art. 10",
+            "Art. 7"
+          ],
+          "ms": 8015,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q32",
+      "category": "multi",
+      "question": "Como funciona o direito de acesso aos dados e em quanto tempo a empresa precisa responder?",
+      "expected": [
+        "Art. 18",
+        "Art. 19"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 19",
+            "Art. 9",
+            "Art. 18",
+            "Art. 23",
+            "Art. 17"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 6,
+          "top5": [
+            "Art. 7",
+            "Art. 40",
+            "Art. 23",
+            "Art. 9",
+            "Art. 33"
+          ],
+          "ms": 4,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 2,
+          "top5": [
+            "Art. 9",
+            "Art. 19",
+            "Art. 23",
+            "Art. 7",
+            "Art. 18"
+          ],
+          "ms": 6,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 2,
+          "top5": [
+            "Art. 9",
+            "Art. 19",
+            "Art. 23",
+            "Art. 7",
+            "Art. 18"
+          ],
+          "ms": 8005,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q33",
+      "category": "multi",
+      "question": "Quais são as sanções por infração e como se define o valor da multa diária?",
+      "expected": [
+        "Art. 52",
+        "Art. 54"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 54",
+            "Art. 53",
+            "Art. 52",
+            "Art. 55-K",
+            "Art. 31"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 53",
+            "Art. 52",
+            "Art. 54",
+            "Art. 55-J",
+            "Art. 31"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 2,
+          "top5": [
+            "Art. 53",
+            "Art. 54",
+            "Art. 52",
+            "Art. 31",
+            "Art. 55-J"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 2,
+          "top5": [
+            "Art. 53",
+            "Art. 54",
+            "Art. 52",
+            "Art. 31",
+            "Art. 55-J"
+          ],
+          "ms": 8007,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q34",
+      "category": "multi",
+      "question": "Quem fiscaliza a lei e de quem esse órgão é composto?",
+      "expected": [
+        "Art. 55-A",
+        "Art. 55-C"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 5,
+          "top5": [
+            "Art. 58-A",
+            "Art. 55-K",
+            "Art. 5",
+            "Art. 55-D",
+            "Art. 55-C"
+          ],
+          "ms": 0,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 2,
+          "top5": [
+            "Art. 5",
+            "Art. 55-C",
+            "Art. 55-K",
+            "Art. 31",
+            "Art. 52"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 3,
+          "top5": [
+            "Art. 5",
+            "Art. 55-K",
+            "Art. 55-C",
+            "Art. 52",
+            "Art. 54"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 3,
+          "top5": [
+            "Art. 5",
+            "Art. 55-K",
+            "Art. 55-C",
+            "Art. 52",
+            "Art. 54"
+          ],
+          "ms": 8016,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q35",
+      "category": "multi",
+      "question": "Em caso de vazamento, o que a empresa deve comunicar e que medidas de segurança deveria ter adotado antes?",
+      "expected": [
+        "Art. 48",
+        "Art. 46"
+      ],
+      "answerable": true,
+      "modes": {
+        "vector": {
+          "rank": 1,
+          "top5": [
+            "Art. 48",
+            "Art. 46",
+            "Art. 44",
+            "Art. 38",
+            "Art. 47"
+          ],
+          "ms": 1,
+          "fallback": false
+        },
+        "lexical": {
+          "rank": 1,
+          "top5": [
+            "Art. 48",
+            "Art. 46",
+            "Art. 38",
+            "Art. 26",
+            "Art. 55-J"
+          ],
+          "ms": 2,
+          "fallback": false
+        },
+        "hybrid": {
+          "rank": 1,
+          "top5": [
+            "Art. 48",
+            "Art. 46",
+            "Art. 38",
+            "Art. 44",
+            "Art. 52"
+          ],
+          "ms": 3,
+          "fallback": false
+        },
+        "hybrid_rerank": {
+          "rank": 1,
+          "top5": [
+            "Art. 48",
+            "Art. 46",
+            "Art. 38",
+            "Art. 44",
+            "Art. 52"
+          ],
+          "ms": 8009,
+          "fallback": true
+        }
+      }
+    },
+    {
+      "id": "q36",
+      "category": "sem_resposta",
+      "question": "Quantas empresas foram multadas pela ANPD desde 2021?",
+      "expected": [],
+      "answerable": false,
+      "modes": {
+        "vector": {
+          "rank": null,
+          "top5": [
+            "Art. 52",
+            "Art. 55-J",
+            "Art. 53",
+            "Art. 55-K",
+            "Art. 55-A"
+          ],
+          "ms": 2,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q37",
+      "category": "sem_resposta",
+      "question": "Qual é o telefone da ANPD para fazer uma denúncia?",
+      "expected": [],
+      "answerable": false,
+      "modes": {
+        "vector": {
+          "rank": null,
+          "top5": [
+            "Art. 55-A",
+            "Art. 55-J",
+            "Art. 55-C",
+            "Art. 55-D",
+            "Art. 55-G"
+          ],
+          "ms": 2,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q38",
+      "category": "sem_resposta",
+      "question": "A lei obriga o uso de criptografia AES-256?",
+      "expected": [],
+      "answerable": false,
+      "modes": {
+        "vector": {
+          "rank": null,
+          "top5": [
+            "Art. 25",
+            "Art. 3",
+            "Art. 46",
+            "Art. 23",
+            "Art. 26"
+          ],
+          "ms": 2,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q39",
+      "category": "sem_resposta",
+      "question": "Qual era o salário dos diretores da ANPD em 2022?",
+      "expected": [],
+      "answerable": false,
+      "modes": {
+        "vector": {
+          "rank": null,
+          "top5": [
+            "Art. 55-D",
+            "Art. 55-I",
+            "Art. 55-C",
+            "Art. 55-E",
+            "Art. 55-A"
+          ],
+          "ms": 1,
+          "fallback": false
+        }
+      }
+    },
+    {
+      "id": "q40",
+      "category": "sem_resposta",
+      "question": "Como a lei dos Estados Unidos trata os dados de crianças?",
+      "expected": [],
+      "answerable": false,
+      "modes": {
+        "vector": {
+          "rank": null,
+          "top5": [
+            "Art. 14",
+            "Art. 3",
+            "Art. 1",
+            "Art. 49",
+            "Art. 9"
+          ],
+          "ms": 1,
+          "fallback": false
+        }
+      }
+    }
+  ]
+}
