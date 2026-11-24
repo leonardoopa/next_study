@@ -30,6 +30,7 @@ CASES = [
     ("Qual projeto monitora preços?", ("Bot de ofertas",)),
 ]
 LIMIT = 9  # the whole corpus, so positions are visible
+DOCUMENT = "cv"  # the questions below are about the CV: do not mix other documents in
 
 
 def position(titles: list[str], wanted: tuple[str, ...]) -> str:
@@ -45,9 +46,11 @@ if __name__ == "__main__":
         register_vector(conn)
         for question, wanted in CASES:
             embedding = embed_query(question)
-            vector = [r.title for r in repository.search_chunks(conn, embedding, LIMIT)]
-            lexical = [r.title for r in repository.search_lexical(conn, question, LIMIT)]
-            hybrid = repository.search_hybrid(conn, question, embedding, limit=LIMIT)
+            vector = [r.title for r in repository.search_chunks(conn, embedding, LIMIT, DOCUMENT)]
+            lexical = [r.title for r in repository.search_lexical(conn, question, LIMIT, DOCUMENT)]
+            hybrid = repository.search_hybrid(
+                conn, question, embedding, limit=LIMIT, document=DOCUMENT
+            )
 
             started = time.perf_counter()
             reranked = asyncio.run(rerank(question, hybrid, top_k=LIMIT))

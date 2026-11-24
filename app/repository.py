@@ -75,33 +75,16 @@ def delete_stale(
     return cur.rowcount
 
 
-def search_chunks(
-    conn: psycopg.Connection, query_embedding: list[float], k: int = 5
-) -> list[SearchResult]:
-    """Top-k chunks closest to the query by cosine distance.
+# Optional filter: NULL means "all documents". One SQL for both cases keeps the queries
+# (and their plans) the same shape; the filter is just a condition.
+_DOC_FILTER = "(%(doc)s::text IS NULL OR d.name = %(doc)s)"
 
-    `<=>` is cosine DISTANCE (0 = identical direction), so ORDER BY ascending puts the
-    closest first, and similarity = 1 - distance.
-    """
-    vec = Vector(query_embedding)
-    rows = conn.execute(_SEARCH_SQL, (vec, vec, k)).fetchall()
-    return [_to_result(r) for r in rows]
-
-
-async def asearch_chunks(
-    conn: psycopg.AsyncConnection, query_embedding: list[float], k: int = 5
-) -> list[SearchResult]:
-    """Async version of search_chunks, for the API (the connection comes from the pool)."""
-    vec = Vector(query_embedding)
-    cur = await conn.execute(_SEARCH_SQL, (vec, vec, k))
-    return [_to_result(r) for r in await cur.fetchall()]
-
-
-_SEARCH_SQL = """
-    SELECT section, title, content, 1 - (embedding <=> %s) AS similarity
-    FROM chunks
-    ORDER BY embedding <=> %s
-    LIMIT %s
+_SEARCH_SQL = f"""
+    SELECT c.section, c.title, c.content, 1 - (c.embedding <=> %(emb)s) AS similarity
+    FROM chunks c JOIN documents d ON d.id = c.document_id
+    WHERE {_DOC_FILTER}
+    ORDER BY c.embedding <=> %(emb)s
+    LIMIT %(limit)s
 """
 
 
@@ -109,6 +92,34 @@ def _to_result(row) -> SearchResult:
     return SearchResult(
         section=row[0], title=row[1], content=row[2], similarity=float(row[3])
     )
+
+
+def search_chunks(
+    conn: psycopg.Connection,
+    query_embedding: list[float],
+    k: int = 5,
+    document: str | None = None,
+) -> list[SearchResult]:
+    """Top-k chunks closest to the query by cosine distance.
+
+    `<=>` is cosine DISTANCE (0 = identical direction), so ORDER BY ascending puts the
+    closest first, and similarity = 1 - distance. `document` limits the search to one
+    document by name (None = all).
+    """
+    params = {"emb": Vector(query_embedding), "limit": k, "doc": document}
+    return [_to_result(r) for r in conn.execute(_SEARCH_SQL, params).fetchall()]
+
+
+async def asearch_chunks(
+    conn: psycopg.AsyncConnection,
+    query_embedding: list[float],
+    k: int = 5,
+    document: str | None = None,
+) -> list[SearchResult]:
+    """Async version of search_chunks, for the API (the connection comes from the pool)."""
+    params = {"emb": Vector(query_embedding), "limit": k, "doc": document}
+    cur = await conn.execute(_SEARCH_SQL, params)
+    return [_to_result(r) for r in await cur.fetchall()]
 
 
 # --- Lexical and hybrid search ---------------------------------------------------------
@@ -124,8 +135,8 @@ _TSQUERY_SQL = """
 _LEXICAL_SQL = f"""
     WITH q AS ({_TSQUERY_SQL})
     SELECT c.section, c.title, c.content, ts_rank(c.tsv, q.tsq, 1) AS score
-    FROM chunks c, q
-    WHERE c.tsv @@ q.tsq
+    FROM chunks c JOIN documents d ON d.id = c.document_id, q
+    WHERE c.tsv @@ q.tsq AND {_DOC_FILTER}
     ORDER BY score DESC, c.id
     LIMIT %(limit)s
 """
@@ -135,17 +146,21 @@ _LEXICAL_SQL = f"""
 _HYBRID_SQL = f"""
     WITH q AS ({_TSQUERY_SQL}),
     vec AS (
-        SELECT id, row_number() OVER (ORDER BY d, id) AS rnk
+        SELECT id, row_number() OVER (ORDER BY dist, id) AS rnk
         FROM (
-            SELECT id, embedding <=> %(emb)s AS d FROM chunks ORDER BY d LIMIT %(n)s
+            SELECT c.id, c.embedding <=> %(emb)s AS dist
+            FROM chunks c JOIN documents d ON d.id = c.document_id
+            WHERE {_DOC_FILTER}
+            ORDER BY dist
+            LIMIT %(n)s
         ) s
     ),
     lex AS (
         SELECT id, row_number() OVER (ORDER BY r DESC, id) AS rnk
         FROM (
             SELECT c.id, ts_rank(c.tsv, q.tsq, 1) AS r
-            FROM chunks c, q
-            WHERE c.tsv @@ q.tsq
+            FROM chunks c JOIN documents d ON d.id = c.document_id, q
+            WHERE c.tsv @@ q.tsq AND {_DOC_FILTER}
             ORDER BY r DESC
             LIMIT %(n)s
         ) s
@@ -165,9 +180,15 @@ _HYBRID_SQL = f"""
 """
 
 
-def search_lexical(conn: psycopg.Connection, query_text: str, limit: int = 5) -> list[RankedChunk]:
+def search_lexical(
+    conn: psycopg.Connection,
+    query_text: str,
+    limit: int = 5,
+    document: str | None = None,
+) -> list[RankedChunk]:
     """Keyword search: Postgres full-text search, Portuguese, accent-insensitive."""
-    rows = conn.execute(_LEXICAL_SQL, {"text": query_text, "limit": limit}).fetchall()
+    params = {"text": query_text, "limit": limit, "doc": document}
+    rows = conn.execute(_LEXICAL_SQL, params).fetchall()
     return [
         RankedChunk(r[0], r[1], r[2], float(r[3]), vector_rank=None, lexical_rank=i)
         for i, r in enumerate(rows, start=1)
@@ -175,7 +196,12 @@ def search_lexical(conn: psycopg.Connection, query_text: str, limit: int = 5) ->
 
 
 def _hybrid_params(
-    query_text: str, query_embedding: list[float], limit: int, candidates: int, rrf_k: int
+    query_text: str,
+    query_embedding: list[float],
+    limit: int,
+    candidates: int,
+    rrf_k: int,
+    document: str | None,
 ) -> dict:
     return {
         "text": query_text,
@@ -183,6 +209,7 @@ def _hybrid_params(
         "n": candidates,
         "k": rrf_k,
         "limit": limit,
+        "doc": document,
     }
 
 
@@ -197,12 +224,15 @@ def search_hybrid(
     limit: int = 5,
     candidates: int = 20,
     rrf_k: int = 60,
+    document: str | None = None,
 ) -> list[RankedChunk]:
     """Vector search + keyword search, fused with Reciprocal Rank Fusion.
 
     Each search contributes its top `candidates`; chunks found by both rise to the top.
     """
-    params = _hybrid_params(query_text, query_embedding, limit, candidates, rrf_k)
+    params = _hybrid_params(
+        query_text, query_embedding, limit, candidates, rrf_k, document
+    )
     return [_to_ranked(r) for r in conn.execute(_HYBRID_SQL, params).fetchall()]
 
 
@@ -213,8 +243,29 @@ async def asearch_hybrid(
     limit: int = 5,
     candidates: int = 20,
     rrf_k: int = 60,
+    document: str | None = None,
 ) -> list[RankedChunk]:
     """Async version of search_hybrid, for the API (connection from the pool)."""
-    params = _hybrid_params(query_text, query_embedding, limit, candidates, rrf_k)
+    params = _hybrid_params(
+        query_text, query_embedding, limit, candidates, rrf_k, document
+    )
     cur = await conn.execute(_HYBRID_SQL, params)
     return [_to_ranked(r) for r in await cur.fetchall()]
+
+
+# --- Documents -------------------------------------------------------------------------
+async def adocument_exists(conn: psycopg.AsyncConnection, name: str) -> bool:
+    cur = await conn.execute("SELECT 1 FROM documents WHERE name = %s", (name,))
+    return await cur.fetchone() is not None
+
+
+async def alist_documents(conn: psycopg.AsyncConnection) -> list[tuple[str, int]]:
+    """(name, number of chunks) of every document, by name."""
+    cur = await conn.execute(
+        """
+        SELECT d.name, count(c.id)
+        FROM documents d LEFT JOIN chunks c ON c.document_id = d.id
+        GROUP BY d.name ORDER BY d.name
+        """
+    )
+    return [(r[0], r[1]) for r in await cur.fetchall()]
