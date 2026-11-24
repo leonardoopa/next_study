@@ -94,3 +94,23 @@ def test_hybrid_score_is_the_sum_of_reciprocal_ranks(conn):
     top = repository.search_hybrid(conn, "quokkamq", one_hot(2), limit=1, rrf_k=60)[0]
     expected = 1 / (60 + top.vector_rank) + 1 / (60 + top.lexical_rank)
     assert top.score == pytest.approx(expected)
+
+
+def test_document_filter_limits_every_kind_of_search(conn):
+    own = {"Z-both", "Y-lexical", "X-vector", "A-accent"}
+
+    vector = repository.search_chunks(conn, one_hot(2), k=20, document="__test__")
+    assert {r.title for r in vector} == own  # only this document, not the real ones
+
+    lexical = repository.search_lexical(conn, "quokkamq", document="__test__")
+    assert {r.title for r in lexical} == {"Z-both", "Y-lexical"}
+
+    hybrid = repository.search_hybrid(conn, "quokkamq", one_hot(2), limit=20, document="__test__")
+    assert {r.title for r in hybrid} <= own
+    assert hybrid[0].title == "Z-both"
+
+
+def test_an_unknown_document_returns_nothing(conn):
+    assert repository.search_chunks(conn, one_hot(2), k=5, document="nao-existe") == []
+    assert repository.search_lexical(conn, "quokkamq", document="nao-existe") == []
+    assert repository.search_hybrid(conn, "quokkamq", one_hot(2), document="nao-existe") == []

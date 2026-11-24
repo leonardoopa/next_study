@@ -1,10 +1,11 @@
-"""Ingestion pipeline: PDF -> text -> chunks -> embeddings -> pgvector.
+"""Ingestion pipeline: file -> chunks -> embeddings -> pgvector.
 
 Idempotent: running it again duplicates nothing and makes no embedding call for chunks
 whose text did not change.
 """
 
 import hashlib
+from collections.abc import Callable
 from pathlib import Path
 
 import psycopg
@@ -15,15 +16,19 @@ from app.config import get_settings
 from app.embeddings import embed_documents, format_document
 from app.ingestion.cv_splitter import build_chunks
 from app.ingestion.extract import extract_text
-from app.schemas import EmbeddedChunk, IngestSummary
+from app.ingestion.lgpd_splitter import build_lgpd_chunks
+from app.schemas import Chunk, EmbeddedChunk, IngestSummary
+
+# Each document type knows how to read its file and split it; the rest is shared.
+ChunkLoader = Callable[[Path], list[Chunk]]
 
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def ingest_cv(path: Path, name: str) -> IngestSummary:
-    chunks = build_chunks(extract_text(path))
+def ingest(path: Path, name: str, load_chunks: ChunkLoader) -> IngestSummary:
+    chunks = load_chunks(path)
     # Hash of the exact text that gets embedded: if prefix or content changes, hash changes.
     hashes = [_sha256(format_document(c)) for c in chunks]
 
@@ -61,3 +66,11 @@ def ingest_cv(path: Path, name: str) -> IngestSummary:
         existing=len(chunks) - len(new),
         removed=removed,
     )
+
+
+def ingest_cv(path: Path, name: str = "cv") -> IngestSummary:
+    return ingest(path, name, lambda p: build_chunks(extract_text(p)))
+
+
+def ingest_lgpd(path: Path, name: str = "lgpd") -> IngestSummary:
+    return ingest(path, name, lambda p: build_lgpd_chunks(p.read_bytes()))

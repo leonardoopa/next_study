@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app import repository
-from app.api_models import AskRequest, AskResponse, Source
+from app.api_models import AskRequest, AskResponse, DocumentInfo, Source
 from app.embeddings import aembed_query
 from app.gemini import PROVIDER_ERRORS, classify
 from app.generation import (
@@ -15,46 +15,99 @@ from app.generation import (
     generate_answer,
     open_stream,
 )
-from app.schemas import SearchResult
+from app.rerank import rerank
+from app.schemas import RankedChunk, Retrieval, RetrievedChunk
 from app.sse import sse_event
 
 router = APIRouter()
 logger = logging.getLogger("app.ask")
 
 RETRY_AFTER_SECONDS = "30"
+RERANK_POOL = 10  # candidates handed to the reranker (it reads each one: keep it small)
 
 
 def _ms(start: float) -> int:
     return int((time.perf_counter() - start) * 1000)
 
 
-def _sources(results: list[SearchResult], ids: list[int]) -> list[Source]:
+def _sources(chunks: list[RetrievedChunk], ids: list[int]) -> list[Source]:
     """Build the Source objects for 1-based ids that were already validated."""
     return [
         Source(
             id=i,
-            section=results[i - 1].section,
-            title=results[i - 1].title,
-            content=results[i - 1].content,
-            similarity=results[i - 1].similarity,
+            section=chunks[i - 1].section,
+            title=chunks[i - 1].title,
+            content=chunks[i - 1].content,
+            similarity=chunks[i - 1].similarity,
+            vector_rank=chunks[i - 1].vector_rank,
+            lexical_rank=chunks[i - 1].lexical_rank,
+            rerank_score=chunks[i - 1].rerank_score,
         )
         for i in ids
     ]
 
 
+def _from_ranked(r: RankedChunk, rerank_score: float | None = None) -> RetrievedChunk:
+    return RetrievedChunk(
+        r.section,
+        r.title,
+        r.content,
+        vector_rank=r.vector_rank,
+        lexical_rank=r.lexical_rank,
+        rerank_score=rerank_score,
+    )
+
+
 async def _retrieve(
-    request: Request, question: str, k: int, timings: dict[str, int]
-) -> list[SearchResult]:
-    """Embed the question and search. Records embed_ms and db_ms in `timings`."""
+    request: Request, body: AskRequest, timings: dict[str, int]
+) -> Retrieval:
+    """Embed the question and retrieve according to `body.mode`.
+
+    Records embed_ms, db_ms and (when it runs) rerank_ms in `timings`.
+    """
     t = time.perf_counter()
-    query_embedding = await aembed_query(question)
+    query_embedding = await aembed_query(body.question)
     timings["embed_ms"] = _ms(t)
 
     t = time.perf_counter()
     async with request.app.state.pool.connection(timeout=2) as conn:
-        results = await repository.asearch_chunks(conn, query_embedding, k)
+        if body.document and not await repository.adocument_exists(conn, body.document):
+            raise HTTPException(
+                status_code=404, detail=f"document not found: {body.document}"
+            )
+        if body.mode == "vector":
+            rows = await repository.asearch_chunks(
+                conn, query_embedding, body.k, document=body.document
+            )
+            timings["db_ms"] = _ms(t)
+            return Retrieval(
+                [
+                    RetrievedChunk(r.section, r.title, r.content, similarity=r.similarity)
+                    for r in rows
+                ]
+            )
+
+        # The reranker needs more candidates than the final k to have something to reorder.
+        limit = body.k if body.mode == "hybrid" else max(body.k, RERANK_POOL)
+        ranked = await repository.asearch_hybrid(
+            conn, body.question, query_embedding, limit=limit, document=body.document
+        )
     timings["db_ms"] = _ms(t)
-    return results
+
+    if body.mode == "hybrid":
+        return Retrieval([_from_ranked(r) for r in ranked])
+
+    # hybrid_rerank. No database connection is held while the model works.
+    t = time.perf_counter()
+    result = await rerank(body.question, ranked, top_k=body.k)
+    timings["rerank_ms"] = _ms(t)
+    return Retrieval(
+        [
+            _from_ranked(ranked[c.original_rank - 1], rerank_score=c.rerank_score)
+            for c in result.chunks
+        ],
+        rerank_fallback=result.used_fallback,
+    )
 
 
 def _provider_http_error(exc: Exception) -> HTTPException:
@@ -68,15 +121,26 @@ def _provider_http_error(exc: Exception) -> HTTPException:
     )
 
 
+@router.get("/documents", response_model=list[DocumentInfo])
+async def documents(request: Request) -> list[DocumentInfo]:
+    """The documents that can be passed as `document` to /ask, with their chunk counts."""
+    try:
+        async with request.app.state.pool.connection(timeout=2) as conn:
+            rows = await repository.alist_documents(conn)
+    except (psycopg.Error, TimeoutError) as exc:
+        raise HTTPException(status_code=503, detail="database unavailable") from exc
+    return [DocumentInfo(name=name, chunks=n) for name, n in rows]
+
+
 @router.post("/ask", response_model=AskResponse)
 async def ask(body: AskRequest, request: Request) -> AskResponse:
-    """Retrieve the closest chunks, answer from them only, and cite the sources used."""
+    """Retrieve chunks (vector, hybrid or hybrid+rerank), answer from them, cite sources."""
     timings: dict[str, int] = {}
     started = time.perf_counter()
     try:
-        results = await _retrieve(request, body.question, body.k, timings)
+        retrieval = await _retrieve(request, body, timings)
         t = time.perf_counter()
-        answer = await generate_answer(body.question, results)
+        answer = await generate_answer(body.question, retrieval.chunks)
         timings["generate_ms"] = _ms(t)
     except (psycopg.Error, TimeoutError) as exc:
         raise HTTPException(status_code=503, detail="database unavailable") from exc
@@ -86,12 +150,19 @@ async def ask(body: AskRequest, request: Request) -> AskResponse:
         raise HTTPException(status_code=502, detail="model provider error") from exc
 
     logger.info(
-        "ask %s total_ms=%d answerable=%s", timings, _ms(started), answer.answerable
+        "ask mode=%s %s total_ms=%d answerable=%s rerank_fallback=%s",
+        body.mode,
+        timings,
+        _ms(started),
+        answer.answerable,
+        retrieval.rerank_fallback,
     )
     return AskResponse(
         answer=answer.text,
         answerable=answer.answerable,
-        sources=_sources(results, answer.cited_ids),
+        sources=_sources(retrieval.chunks, answer.cited_ids),
+        mode=body.mode,
+        rerank_fallback=retrieval.rerank_fallback,
     )
 
 
@@ -99,19 +170,21 @@ async def ask(body: AskRequest, request: Request) -> AskResponse:
 async def ask_stream(body: AskRequest, request: Request) -> StreamingResponse:
     """Same as /ask, but the answer arrives token by token (Server-Sent Events).
 
-    Events: `token` {text} (many), `sources` {answerable, sources}, `done`, or `error`.
+    Events: `token` {text} (many), `sources` {answerable, sources, mode, rerank_fallback},
+    `done`, or `error`.
 
-    Everything that can fail BEFORE the first byte (embedding, database, and opening the
-    model stream including its first chunk) runs here, so those failures still return a
-    proper 503/502/504. After the response starts the status line is already sent as
-    200, so errors become an `error` event.
+    Everything that can fail BEFORE the first byte (embedding, database, rerank, and
+    opening the model stream including its first chunk) runs here, so those failures
+    still return a proper 503/502/504. After the response starts the status line is
+    already sent as 200, so errors become an `error` event.
     """
     timings: dict[str, int] = {}
     started = time.perf_counter()
     try:
-        results = await _retrieve(request, body.question, body.k, timings)
+        retrieval = await _retrieve(request, body, timings)
+        chunks = retrieval.chunks
         t = time.perf_counter()
-        stream = await open_stream(body.question, results) if results else None
+        stream = await open_stream(body.question, chunks) if chunks else None
         # Includes the wait for the first chunk and any retry: this is the model's part
         # of the time to first token.
         timings["first_chunk_ms"] = _ms(t)
@@ -143,21 +216,25 @@ async def ask_stream(body: AskRequest, request: Request) -> StreamingResponse:
 
         # Text is already on the user's screen, so it cannot be withdrawn. What we can do
         # is tell the client whether it is backed by real sources.
-        cited = extract_citations("".join(parts), len(results))
+        cited = extract_citations("".join(parts), len(chunks))
         yield sse_event(
             "sources",
             {
                 "answerable": bool(cited),
-                "sources": [s.model_dump() for s in _sources(results, cited)],
+                "sources": [s.model_dump() for s in _sources(chunks, cited)],
+                "mode": body.mode,
+                "rerank_fallback": retrieval.rerank_fallback,
             },
         )
         yield sse_event("done", {})
         logger.info(
-            "ask_stream %s total_ms=%d chunks=%d answerable=%s",
+            "ask_stream mode=%s %s total_ms=%d chunks=%d answerable=%s rerank_fallback=%s",
+            body.mode,
             timings,
             _ms(started),
             len(parts),
             bool(cited),
+            retrieval.rerank_fallback,
         )
 
     return StreamingResponse(

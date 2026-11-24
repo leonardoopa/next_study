@@ -80,3 +80,16 @@ def test_falls_back_on_unusable_output(monkeypatch):
 def test_no_candidates_is_not_a_failure():
     result = asyncio.run(rerank("q", [], top_k=3))
     assert result.chunks == [] and result.used_fallback is False
+
+
+def test_falls_back_when_the_rerank_takes_too_long(monkeypatch):
+    async def slow(_question, _candidates):
+        await asyncio.sleep(5)
+
+    monkeypatch.setattr(rerank_module, "_score", slow)
+    monkeypatch.setattr(
+        rerank_module, "get_settings", lambda: type("S", (), {"rerank_timeout_s": 0.05})()
+    )
+    result = asyncio.run(rerank("q", CANDIDATES, top_k=2))
+    assert result.used_fallback is True
+    assert [r.title for r in result.chunks] == ["A", "B"]

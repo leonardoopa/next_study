@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     gemini_timeout_ms: int = 30_000
     # Model that scores candidates in the rerank step (an extra LLM call per question).
     rerank_model: str = "gemini-3.5-flash-lite"
+    # Hard limit for the whole rerank step (retries included). Rerank is optional, so it
+    # must never hold a user request for long: past this, the original order is used.
+    rerank_timeout_s: float = 8.0
 
 
 @lru_cache
