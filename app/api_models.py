@@ -19,6 +19,11 @@ class AskRequest(BaseModel):
             "hybrid_rerank: hybrid, then an LLM reorders the candidates."
         ),
     )
+    document: str | None = Field(
+        default=None,
+        max_length=64,
+        description="search only this document by name (see GET /documents); null = all",
+    )
 
 
 class Source(BaseModel):
@@ -45,3 +50,8 @@ class AskResponse(BaseModel):
     rerank_fallback: bool = Field(
         default=False, description="true when the rerank failed and the old order was kept"
     )
+
+
+class DocumentInfo(BaseModel):
+    name: str
+    chunks: int

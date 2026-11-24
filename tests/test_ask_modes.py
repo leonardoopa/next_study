@@ -27,18 +27,22 @@ HYBRID = [_ranked("A", 1, None), _ranked("B", 2, 1), _ranked("C", 3, 2)]
 
 @pytest.fixture
 def env(monkeypatch):
-    calls = SimpleNamespace(hybrid_limit=None, rerank_top_k=None, prompt_titles=None, vector=0)
+    calls = SimpleNamespace(
+        hybrid_limit=None, rerank_top_k=None, prompt_titles=None, vector=0, document="unset"
+    )
     state = SimpleNamespace(fallback=False)
 
     async def embed(_q):
         return [0.0]
 
-    async def vector(_conn, _emb, k):
+    async def vector(_conn, _emb, k, document=None):
         calls.vector += 1
+        calls.document = document
         return [SearchResult("S", "V1", "content V1", 0.8)][:k]
 
-    async def hybrid(_conn, _text, _emb, limit=5, **_kw):
+    async def hybrid(_conn, _text, _emb, limit=5, document=None, **_kw):
         calls.hybrid_limit = limit
+        calls.document = document
         return HYBRID[:limit]
 
     async def fake_rerank(_q, candidates, top_k=5):
@@ -64,6 +68,14 @@ def env(monkeypatch):
 
         return gen()
 
+    async def exists(_conn, name):
+        return name in {"cv", "lgpd"}
+
+    async def list_docs(_conn):
+        return [("cv", 9), ("lgpd", 87)]
+
+    monkeypatch.setattr(ask_module.repository, "adocument_exists", exists)
+    monkeypatch.setattr(ask_module.repository, "alist_documents", list_docs)
     monkeypatch.setattr(ask_module, "aembed_query", embed)
     monkeypatch.setattr(ask_module.repository, "asearch_chunks", vector)
     monkeypatch.setattr(ask_module.repository, "asearch_hybrid", hybrid)
@@ -135,3 +147,38 @@ def test_stream_in_rerank_mode_sends_sources_with_provenance(env):
     assert sources["answerable"] is True
     assert sources["sources"][0]["title"] == "C"
     assert sources["sources"][0]["rerank_score"] == 9.0
+
+
+def test_document_filter_reaches_the_vector_search(env):
+    _post(env, document="lgpd")
+    assert env.calls.document == "lgpd"
+
+
+def test_document_filter_reaches_the_hybrid_search(env):
+    _post(env, mode="hybrid", document="cv")
+    assert env.calls.document == "cv"
+
+
+def test_no_document_means_search_everything(env):
+    _post(env, mode="hybrid")
+    assert env.calls.document is None
+
+
+def test_unknown_document_is_a_404_and_nothing_is_searched(env):
+    resp = _post(env, document="nao-existe")
+    assert resp.status_code == 404
+    assert "nao-existe" in resp.json()["detail"]
+    assert env.calls.vector == 0 and env.calls.hybrid_limit is None
+
+
+def test_unknown_document_is_a_404_on_the_stream_too(env):
+    resp = env.client.post(
+        "/ask/stream", json={"question": "pergunta de teste", "document": "nao-existe"}
+    )
+    assert resp.status_code == 404
+
+
+def test_documents_endpoint_lists_names_and_chunk_counts(env):
+    resp = env.client.get("/documents")
+    assert resp.status_code == 200
+    assert resp.json() == [{"name": "cv", "chunks": 9}, {"name": "lgpd", "chunks": 87}]

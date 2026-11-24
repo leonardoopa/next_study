@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app import repository
-from app.api_models import AskRequest, AskResponse, Source
+from app.api_models import AskRequest, AskResponse, DocumentInfo, Source
 from app.embeddings import aembed_query
 from app.gemini import PROVIDER_ERRORS, classify
 from app.generation import (
@@ -71,8 +71,14 @@ async def _retrieve(
 
     t = time.perf_counter()
     async with request.app.state.pool.connection(timeout=2) as conn:
+        if body.document and not await repository.adocument_exists(conn, body.document):
+            raise HTTPException(
+                status_code=404, detail=f"document not found: {body.document}"
+            )
         if body.mode == "vector":
-            rows = await repository.asearch_chunks(conn, query_embedding, body.k)
+            rows = await repository.asearch_chunks(
+                conn, query_embedding, body.k, document=body.document
+            )
             timings["db_ms"] = _ms(t)
             return Retrieval(
                 [
@@ -84,7 +90,7 @@ async def _retrieve(
         # The reranker needs more candidates than the final k to have something to reorder.
         limit = body.k if body.mode == "hybrid" else max(body.k, RERANK_POOL)
         ranked = await repository.asearch_hybrid(
-            conn, body.question, query_embedding, limit=limit
+            conn, body.question, query_embedding, limit=limit, document=body.document
         )
     timings["db_ms"] = _ms(t)
 
@@ -113,6 +119,17 @@ def _provider_http_error(exc: Exception) -> HTTPException:
     return HTTPException(
         status_code=failure.status, detail=failure.detail, headers=headers
     )
+
+
+@router.get("/documents", response_model=list[DocumentInfo])
+async def documents(request: Request) -> list[DocumentInfo]:
+    """The documents that can be passed as `document` to /ask, with their chunk counts."""
+    try:
+        async with request.app.state.pool.connection(timeout=2) as conn:
+            rows = await repository.alist_documents(conn)
+    except (psycopg.Error, TimeoutError) as exc:
+        raise HTTPException(status_code=503, detail="database unavailable") from exc
+    return [DocumentInfo(name=name, chunks=n) for name, n in rows]
 
 
 @router.post("/ask", response_model=AskResponse)
