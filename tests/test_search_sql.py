@@ -114,3 +114,45 @@ def test_an_unknown_document_returns_nothing(conn):
     assert repository.search_chunks(conn, one_hot(2), k=5, document="nao-existe") == []
     assert repository.search_lexical(conn, "quokkamq", document="nao-existe") == []
     assert repository.search_hybrid(conn, "quokkamq", one_hot(2), document="nao-existe") == []
+
+
+def test_lexical_weight_zero_makes_the_hybrid_follow_the_vector_order(conn):
+    results = repository.search_hybrid(
+        conn, "quokkamq", one_hot(2), limit=3, document="__test__", lexical_weight=0.0
+    )
+    assert results[0].title == "Z-both"
+    assert results[0].score == pytest.approx(1 / (60 + results[0].vector_rank))  # no keyword part
+
+
+def test_lexical_candidates_limits_how_many_keyword_results_enter_the_fusion(conn):
+    results = repository.search_hybrid(
+        conn, "quokkamq", one_hot(2), limit=20, document="__test__", lexical_candidates=1
+    )
+    assert sum(r.lexical_rank is not None for r in results) == 1
+
+
+def test_explicit_lexemes_replace_the_question_text(conn):
+    results = repository.search_hybrid(
+        conn, "texto que nao casa com nada", one_hot(2), limit=20,
+        document="__test__", lexical_terms=["zebrinh"],
+    )  # fmt: skip
+    assert {r.title: r.lexical_rank for r in results if r.lexical_rank} == {"Z-both": 1}
+
+
+def test_an_empty_lexeme_list_turns_the_keyword_side_off(conn):
+    results = repository.search_hybrid(
+        conn, "quokkamq", one_hot(2), limit=20, document="__test__", lexical_terms=[]
+    )
+    assert all(r.lexical_rank is None for r in results)
+
+
+def test_query_lexemes_are_stemmed_and_without_stopwords(conn):
+    lexemes = repository.query_lexemes(conn, "Quantos estagiarios ele mentorou?")
+    assert {"estagiari", "mentor"} <= set(lexemes)
+    assert "ele" not in lexemes
+
+
+def test_document_frequencies_count_chunks_per_lexeme(conn):
+    n, counts = repository.document_frequencies(conn, "__test__")
+    assert n == 4
+    assert counts["quokkamq"] == 2  # in Z-both and Y-lexical

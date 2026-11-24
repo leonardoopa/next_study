@@ -127,9 +127,13 @@ async def asearch_chunks(
 # with AND, which is too strict for natural questions ("conhece" would have to appear in
 # the chunk). With OR, any matching term qualifies and ts_rank orders by how well.
 _TSQUERY_SQL = """
-    SELECT replace(
-        websearch_to_tsquery('portuguese', immutable_unaccent(%(text)s))::text, '&', '|'
-    )::tsquery AS tsq
+    SELECT CASE
+        WHEN %(tsq)s::text IS NULL THEN replace(
+            websearch_to_tsquery('portuguese', immutable_unaccent(%(text)s))::text, '&', '|'
+        )::tsquery
+        -- already-stemmed lexemes ("a" | "b"): the 'simple' config must not stem them again
+        ELSE to_tsquery('simple', %(tsq)s::text)
+    END AS tsq
 """
 
 _LEXICAL_SQL = f"""
@@ -162,12 +166,16 @@ _HYBRID_SQL = f"""
             FROM chunks c JOIN documents d ON d.id = c.document_id, q
             WHERE c.tsv @@ q.tsq AND {_DOC_FILTER}
             ORDER BY r DESC
-            LIMIT %(n)s
+            LIMIT %(n_lex)s
         ) s
     ),
     fused AS (
-        SELECT id, sum(1.0 / (%(k)s + rnk)) AS rrf
-        FROM (SELECT id, rnk FROM vec UNION ALL SELECT id, rnk FROM lex) both_lists
+        SELECT id, sum(w * 1.0 / (%(k)s + rnk)) AS rrf
+        FROM (
+            SELECT id, rnk, %(w_vec)s::float8 AS w FROM vec
+            UNION ALL
+            SELECT id, rnk, %(w_lex)s::float8 AS w FROM lex
+        ) both_lists
         GROUP BY id
     )
     SELECT c.section, c.title, c.content, f.rrf, v.rnk, l.rnk
@@ -187,7 +195,7 @@ def search_lexical(
     document: str | None = None,
 ) -> list[RankedChunk]:
     """Keyword search: Postgres full-text search, Portuguese, accent-insensitive."""
-    params = {"text": query_text, "limit": limit, "doc": document}
+    params = {"text": query_text, "limit": limit, "doc": document, "tsq": None}
     rows = conn.execute(_LEXICAL_SQL, params).fetchall()
     return [
         RankedChunk(r[0], r[1], r[2], float(r[3]), vector_rank=None, lexical_rank=i)
@@ -202,15 +210,27 @@ def _hybrid_params(
     candidates: int,
     rrf_k: int,
     document: str | None,
+    lexical_weight: float = 1.0,
+    lexical_candidates: int | None = None,
+    lexical_terms: list[str] | None = None,
 ) -> dict:
     return {
         "text": query_text,
         "emb": Vector(query_embedding),
         "n": candidates,
+        "n_lex": candidates if lexical_candidates is None else lexical_candidates,
         "k": rrf_k,
         "limit": limit,
         "doc": document,
+        "w_vec": 1.0,
+        "w_lex": lexical_weight,
+        # None = build the query from the question text; a list = use exactly these lexemes
+        "tsq": None if lexical_terms is None else " | ".join(_quote(t) for t in lexical_terms),
     }
+
+
+def _quote(lexeme: str) -> str:
+    return "'" + lexeme.replace("'", "''") + "'"
 
 
 def _to_ranked(r) -> RankedChunk:
@@ -225,14 +245,22 @@ def search_hybrid(
     candidates: int = 20,
     rrf_k: int = 60,
     document: str | None = None,
+    lexical_weight: float = 1.0,
+    lexical_candidates: int | None = None,
+    lexical_terms: list[str] | None = None,
 ) -> list[RankedChunk]:
     """Vector search + keyword search, fused with Reciprocal Rank Fusion.
 
     Each search contributes its top `candidates`; chunks found by both rise to the top.
+    Tuning knobs (defaults reproduce the plain, equal-weight fusion):
+      lexical_weight     weight of the keyword list in the fusion (vector is 1.0)
+      lexical_candidates how many keyword results enter the fusion (default: `candidates`)
+      lexical_terms      stemmed lexemes to search instead of the whole question
     """
     params = _hybrid_params(
-        query_text, query_embedding, limit, candidates, rrf_k, document
-    )
+        query_text, query_embedding, limit, candidates, rrf_k, document,
+        lexical_weight, lexical_candidates, lexical_terms,
+    )  # fmt: skip
     return [_to_ranked(r) for r in conn.execute(_HYBRID_SQL, params).fetchall()]
 
 
@@ -269,3 +297,32 @@ async def alist_documents(conn: psycopg.AsyncConnection) -> list[tuple[str, int]
         """
     )
     return [(r[0], r[1]) for r in await cur.fetchall()]
+
+
+# --- Helpers to tune the keyword side ---------------------------------------------------
+def query_lexemes(conn: psycopg.Connection, text: str) -> list[str]:
+    """The question as stemmed, unaccented lexemes with stopwords removed."""
+    row = conn.execute(
+        "SELECT tsvector_to_array(to_tsvector('portuguese', immutable_unaccent(%s)))", (text,)
+    ).fetchone()
+    return list(row[0])
+
+
+def document_frequencies(
+    conn: psycopg.Connection, document: str | None = None
+) -> tuple[int, dict[str, int]]:
+    """(number of chunks, lexeme -> in how many chunks it appears). ts_rank ignores this
+    information; the experiments use it to drop terms that appear almost everywhere."""
+    rows = conn.execute(
+        """
+        SELECT tsvector_to_array(c.tsv)
+        FROM chunks c JOIN documents d ON d.id = c.document_id
+        WHERE (%(doc)s::text IS NULL OR d.name = %(doc)s)
+        """,
+        {"doc": document},
+    ).fetchall()
+    counts: dict[str, int] = {}
+    for (lexemes,) in rows:
+        for lexeme in lexemes:
+            counts[lexeme] = counts.get(lexeme, 0) + 1
+    return len(rows), counts
