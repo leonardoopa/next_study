@@ -1,0 +1,40 @@
+{"id": "q01", "category": "exato", "question": "O que o Art. 18 da LGPD garante a quem teve os dados coletados?", "expected": ["Art. 18"], "answerable": true, "note": ""}
+{"id": "q02", "category": "exato", "question": "Quais são as atividades do encarregado?", "expected": ["Art. 41"], "answerable": true, "note": ""}
+{"id": "q03", "category": "exato", "question": "Qual é o limite da multa simples por infração?", "expected": ["Art. 52"], "answerable": true, "note": "R$ 50 milhões e 2% do faturamento"}
+{"id": "q04", "category": "exato", "question": "O que é a ANPD e como ela foi criada?", "expected": ["Art. 55-A"], "answerable": true, "note": "texto vigente: Agência Nacional, autarquia"}
+{"id": "q05", "category": "exato", "question": "Quantos diretores tem o Conselho Diretor da ANPD?", "expected": ["Art. 55-D"], "answerable": true, "note": "5"}
+{"id": "q06", "category": "exato", "question": "Quantos representantes compõem o Conselho Nacional de Proteção de Dados Pessoais e da Privacidade?", "expected": ["Art. 58-A"], "answerable": true, "note": "23"}
+{"id": "q07", "category": "exato", "question": "O que a lei define como dado pessoal sensível?", "expected": ["Art. 5"], "answerable": true, "note": "definição em inciso do Art. 5"}
+{"id": "q08", "category": "exato", "question": "O que diz o Art. 65 sobre quando a lei entra em vigor?", "expected": ["Art. 65"], "answerable": true, "note": ""}
+{"id": "q09", "category": "parafrase", "question": "Preciso da autorização da pessoa para usar os dados dela?", "expected": ["Art. 7"], "answerable": true, "note": "CONFUNDIVEL com Art. 27 (a híbrida errou aqui no dia 5)"}
+{"id": "q10", "category": "parafrase", "question": "Posso mudar de ideia e pedir que parem de usar o que eu já liberei?", "expected": ["Art. 8", "Art. 18"], "answerable": true, "note": "revogação do consentimento"}
+{"id": "q11", "category": "parafrase", "question": "Uma empresa pode guardar informações de menores de idade?", "expected": ["Art. 14"], "answerable": true, "note": "crianças e adolescentes"}
+{"id": "q12", "category": "parafrase", "question": "Se descobrirem que minhas informações vazaram, quem precisa ser avisado?", "expected": ["Art. 48"], "answerable": true, "note": ""}
+{"id": "q13", "category": "parafrase", "question": "O que acontece com os dados de um cliente quando ele para de usar o serviço?", "expected": ["Art. 15", "Art. 16"], "answerable": true, "note": "término e eliminação"}
+{"id": "q14", "category": "parafrase", "question": "Uma decisão tomada só por um algoritmo, como negar um empréstimo, pode ser contestada?", "expected": ["Art. 20"], "answerable": true, "note": ""}
+{"id": "q15", "category": "parafrase", "question": "Quem paga o prejuízo quando uma empresa faz mau uso das informações de alguém?", "expected": ["Art. 42"], "answerable": true, "note": ""}
+{"id": "q16", "category": "parafrase", "question": "Em que situações a empresa escapa da culpa por um dano com informações pessoais?", "expected": ["Art. 43"], "answerable": true, "note": ""}
+{"id": "q17", "category": "parafrase", "question": "Posso mandar informações de clientes brasileiros para servidores em outro país?", "expected": ["Art. 33"], "answerable": true, "note": "transferência internacional"}
+{"id": "q18", "category": "parafrase", "question": "A empresa é obrigada a ter proteção técnica contra invasões?", "expected": ["Art. 46"], "answerable": true, "note": "medidas de segurança"}
+{"id": "q19", "category": "parafrase", "question": "Informações que já não identificam mais ninguém continuam protegidas pela lei?", "expected": ["Art. 12"], "answerable": true, "note": "anonimizados"}
+{"id": "q20", "category": "parafrase", "question": "Quanto tempo a empresa tem para me mostrar tudo o que sabe sobre mim?", "expected": ["Art. 19"], "answerable": true, "note": "15 dias"}
+{"id": "q21", "category": "parafrase", "question": "Que punições uma empresa pode receber por descumprir a lei?", "expected": ["Art. 52"], "answerable": true, "note": "CONFUNDIVEL com Art. 54"}
+{"id": "q22", "category": "parafrase", "question": "Uma prefeitura pode entregar o cadastro dos moradores a uma firma particular?", "expected": ["Art. 27", "Art. 26"], "answerable": true, "note": ""}
+{"id": "q23", "category": "tema", "question": "Quais são os princípios que devem ser seguidos ao lidar com dados pessoais?", "expected": ["Art. 6"], "answerable": true, "note": ""}
+{"id": "q24", "category": "tema", "question": "O que a lei considera legítimo interesse?", "expected": ["Art. 10"], "answerable": true, "note": ""}
+{"id": "q25", "category": "tema", "question": "O que significa tratar dados na LGPD?", "expected": ["Art. 5"], "answerable": true, "note": ""}
+{"id": "q26", "category": "tema", "question": "Em quais situações a LGPD não se aplica?", "expected": ["Art. 4"], "answerable": true, "note": ""}
+{"id": "q27", "category": "tema", "question": "Posso pedir a portabilidade dos meus dados para outro fornecedor?", "expected": ["Art. 18"], "answerable": true, "note": ""}
+{"id": "q28", "category": "tema", "question": "Qual é a diferença entre controlador e operador?", "expected": ["Art. 5"], "answerable": true, "note": ""}
+{"id": "q29", "category": "tema", "question": "Como o consentimento precisa ser dado para valer?", "expected": ["Art. 8"], "answerable": true, "note": ""}
+{"id": "q30", "category": "tema", "question": "O que é um relatório de impacto à proteção de dados pessoais?", "expected": ["Art. 5", "Art. 38"], "answerable": true, "note": ""}
+{"id": "q31", "category": "multi", "question": "Quais são as bases legais para tratar dados e como o consentimento deve ser obtido?", "expected": ["Art. 7", "Art. 8"], "answerable": true, "note": ""}
+{"id": "q32", "category": "multi", "question": "Como funciona o direito de acesso aos dados e em quanto tempo a empresa precisa responder?", "expected": ["Art. 18", "Art. 19"], "answerable": true, "note": ""}
+{"id": "q33", "category": "multi", "question": "Quais são as sanções por infração e como se define o valor da multa diária?", "expected": ["Art. 52", "Art. 54"], "answerable": true, "note": ""}
+{"id": "q34", "category": "multi", "question": "Quem fiscaliza a lei e de quem esse órgão é composto?", "expected": ["Art. 55-A", "Art. 55-C"], "answerable": true, "note": ""}
+{"id": "q35", "category": "multi", "question": "Em caso de vazamento, o que a empresa deve comunicar e que medidas de segurança deveria ter adotado antes?", "expected": ["Art. 48", "Art. 46"], "answerable": true, "note": ""}
+{"id": "q36", "category": "sem_resposta", "question": "Quantas empresas foram multadas pela ANPD desde 2021?", "expected": [], "answerable": false, "note": "dado estatístico, fora da lei"}
+{"id": "q37", "category": "sem_resposta", "question": "Qual é o telefone da ANPD para fazer uma denúncia?", "expected": [], "answerable": false, "note": ""}
+{"id": "q38", "category": "sem_resposta", "question": "A lei obriga o uso de criptografia AES-256?", "expected": [], "answerable": false, "note": "a lei fala em medidas de segurança, sem citar algoritmo"}
+{"id": "q39", "category": "sem_resposta", "question": "Qual era o salário dos diretores da ANPD em 2022?", "expected": [], "answerable": false, "note": "a lei cita o nível de cargo, não o valor"}
+{"id": "q40", "category": "sem_resposta", "question": "Como a lei dos Estados Unidos trata os dados de crianças?", "expected": [], "answerable": false, "note": "outra legislação"}
